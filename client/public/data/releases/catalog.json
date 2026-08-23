@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "releaseVersion": "20260824.0701",
-  "generatedAtUtc": "2026-08-23T23:01:55+00:00",
+  "releaseVersion": "20260824.0756",
+  "generatedAtUtc": "2026-08-23T23:57:21+00:00",
   "definitionLanguage": "zh-Hant",
-  "releasedQuestionCount": 3244,
+  "releasedQuestionCount": 3356,
   "collections": [
     {
       "id": "ox3000-a1",
@@ -189,7 +189,7 @@
           "rangeEnd": 804,
           "firstHeadword": "misplace",
           "lastHeadword": "xenophobia",
-          "availableCount": 157,
+          "availableCount": 269,
           "dataFile": "cambridge-c2-p2.json"
         }
       ]
