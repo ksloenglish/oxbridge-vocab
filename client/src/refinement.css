@@ -209,7 +209,18 @@
   display: none;
 }
 
-@media (min-width: 621px) and (max-width: 1100px) {
+.exercise-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0.2rem 0;
+  color: color-mix(in srgb, var(--ink) 58%, transparent);
+  font-size: 0.62rem;
+  letter-spacing: 0.015em;
+}
+
+@media (min-width: 621px) and (max-width: 1100px),
+  (min-width: 1101px) and (max-width: 1366px) and (pointer: coarse) {
   body .exercise-page {
     width: calc(100% - 1rem);
     min-height: 100svh;
@@ -405,13 +416,18 @@
     min-height: 44px;
     padding: 0.5rem 0.85rem;
   }
+
+  .exercise-footer {
+    padding: 0.25rem 0.15rem 0;
+    font-size: 0.54rem;
+  }
 }
 
 @media (max-width: 620px) {
-  .exercise-page {
+  body .exercise-page {
     width: 100%;
-    min-height: 100svh;
-    padding: 0.35rem 0.45rem 0.5rem;
+    min-height: calc(100svh - 2px);
+    padding: 0.35rem 0.45rem 0.4rem;
   }
 
   .exercise-header {
@@ -658,6 +674,13 @@
     min-height: 44px;
     padding: 0.5rem 0.75rem;
     font-size: 0.82rem;
+  }
+
+  .exercise-footer {
+    gap: 0.45rem;
+    padding: 0.28rem 0.1rem 0;
+    font-size: 0.5rem;
+    white-space: nowrap;
   }
 
   .results-motif {

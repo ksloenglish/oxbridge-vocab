@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { ArrowRight, Check, Clock3, LogOut, X } from "lucide-react";
 import { BrandLockup } from "@/components/BrandLockup";
+import { APP_VERSION } from "@/lib/appVersion";
 import { formatActiveTime } from "@/lib/exercise";
 import { getSentenceSizeClass } from "@/lib/questionPresentation";
 import type { ExerciseSnapshot } from "@/types";
@@ -193,6 +194,11 @@ export function QuestionView({
           )}
         </div>
       </section>
+
+      <footer className="exercise-footer" aria-label="Application information">
+        <span>Version {APP_VERSION}</span>
+        <span>© {new Date().getFullYear()} K S Lo English. All Rights Reserved.</span>
+      </footer>
     </main>
   );
 }
