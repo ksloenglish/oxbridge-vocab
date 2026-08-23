@@ -1,5 +1,15 @@
-# Oxford & Cambridge Vocabulary Challenge
+# Oxbridge Vocab Challenge
 
-This repository will host the student-facing **Oxford & Cambridge Vocabulary Challenge** at GitHub Pages. The exercise application and carefully approved, minimised release data will be added in a later development stage.
+The student-facing vocabulary practice application for **K S Lo English**. It provides four-option sentence-cloze exercises for the Oxford 3000, Oxford 5000, and C2 Proficiency collections using approved, minimised release data.
 
-No raw vocabulary lists, authoring records, review notes, or private source material are stored here.
+## Local verification
+
+```bash
+pnpm install --frozen-lockfile
+pnpm validate:release
+pnpm test
+pnpm check
+pnpm build:pages
+```
+
+GitHub Actions publishes the validated static build to GitHub Pages from `main`. The public repository contains only the application, self-contained visual assets, and production-safe release JSON. Private authoring data, provenance, approvals, candidates, review evidence, and manifests are excluded.
