@@ -196,6 +196,7 @@ input:focus-visible + * {
 
 .brand-panel__message {
   margin-top: auto;
+  margin-bottom: 1.6rem;
   max-width: 560px;
 }
 
@@ -217,18 +218,6 @@ input:focus-visible + * {
   color: rgba(255, 255, 255, 0.8);
   font-size: clamp(1rem, 1.4vw, 1.14rem);
   line-height: 1.75;
-}
-
-.brand-panel__note {
-  margin-top: 2.2rem;
-  padding-top: 1.2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.22);
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  color: rgba(255, 255, 255, 0.78);
-  font-size: 0.9rem;
-  font-weight: 700;
 }
 
 .brand-lockup {
@@ -1266,15 +1255,12 @@ input:focus-visible + * {
   }
 
   .brand-panel__message {
-    margin-top: 4rem;
+    margin-top: 5.5rem;
+    margin-bottom: 0;
   }
 
   .brand-panel__message > p:last-child {
     max-width: 60ch;
-  }
-
-  .brand-panel__note {
-    margin-top: 1.4rem;
   }
 
   .setup-folio {

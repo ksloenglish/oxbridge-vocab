@@ -1,6 +1,6 @@
 /** Oxbridge Ledger: asymmetric editorial setup folio with large touch targets and dynamic availability. */
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Bookmark, Play, RotateCcw } from "lucide-react";
+import { ArrowRight, Play, RotateCcw } from "lucide-react";
 import { BrandLockup } from "@/components/BrandLockup";
 import { APP_VERSION } from "@/lib/appVersion";
 import { getRangeLabel, normaliseSegmentMode } from "@/lib/exercise";
@@ -77,10 +77,6 @@ export function SetupView({
               Practise the Oxford 3000, Oxford 5000, and C2 Proficiency word lists
               through precise sentence-completion challenges.
             </p>
-          </div>
-          <div className="brand-panel__note">
-            <Bookmark size={18} aria-hidden="true" />
-            <span>Learn the right words. Use them precisely.</span>
           </div>
           <img className="brand-panel__art" src={heroArt} alt="" />
         </aside>
