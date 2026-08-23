@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { ArrowRight, Check, Clock3, LogOut, X } from "lucide-react";
 import { BrandLockup } from "@/components/BrandLockup";
 import { formatActiveTime } from "@/lib/exercise";
+import { getSentenceSizeClass } from "@/lib/questionPresentation";
 import type { ExerciseSnapshot } from "@/types";
 import "../refinement.css";
 
@@ -32,6 +33,7 @@ export function QuestionView({
   const feedbackDefinition = feedbackOption
     ? question.optionDefinitions[feedbackOption]
     : null;
+  const sentenceSizeClass = getSentenceSizeClass(question.question);
 
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
@@ -91,7 +93,7 @@ export function QuestionView({
             <p className="eyebrow">
               {exercise.selection.collectionLabel} · {exercise.selection.segmentLabel}
             </p>
-            <h1 id="question-heading">
+            <h1 id="question-heading" className={sentenceSizeClass}>
               {beforeBlank}
               <span className="sentence-blank" aria-label="blank">
                 <span>?</span>
@@ -128,12 +130,14 @@ export function QuestionView({
                   <strong>{option}</strong>
                   {isCorrect && (
                     <span className="option-status">
-                      <Check size={18} strokeWidth={3} aria-hidden="true" /> Correct
+                      <Check size={18} strokeWidth={3} aria-hidden="true" />
+                      <span className="option-status-text">Correct</span>
                     </span>
                   )}
                   {isIncorrect && (
                     <span className="option-status">
-                      <X size={18} strokeWidth={3} aria-hidden="true" /> Try again
+                      <X size={18} strokeWidth={3} aria-hidden="true" />
+                      <span className="option-status-text">Try again</span>
                     </span>
                   )}
                 </button>
@@ -147,11 +151,20 @@ export function QuestionView({
                 <div className={`feedback-label${progress.resolved ? " is-correct" : " is-incorrect"}`}>
                   {progress.resolved ? <Check size={18} aria-hidden="true" /> : <X size={18} aria-hidden="true" />}
                   <strong>
-                    {progress.resolved
-                      ? progress.firstAttemptCorrect
-                        ? "Correct on the first attempt"
-                        : "Correct — nicely recovered"
-                      : "Not quite — use the definition and try again"}
+                    <span className="feedback-text--desktop">
+                      {progress.resolved
+                        ? progress.firstAttemptCorrect
+                          ? "Correct on the first attempt"
+                          : "Correct — nicely recovered"
+                        : "Not quite — use the definition and try again"}
+                    </span>
+                    <span className="feedback-text--mobile">
+                      {progress.resolved
+                        ? progress.firstAttemptCorrect
+                          ? "Correct first try"
+                          : "Correct — recovered"
+                        : "Try again"}
+                    </span>
                   </strong>
                 </div>
                 <div className="definition-copy">
