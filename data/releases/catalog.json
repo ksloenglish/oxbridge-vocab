@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "releaseVersion": "20260823.1102",
-  "generatedAtUtc": "2026-08-23T03:02:28+00:00",
+  "releaseVersion": "20260824.0701",
+  "generatedAtUtc": "2026-08-23T23:01:55+00:00",
   "definitionLanguage": "zh-Hant",
-  "releasedQuestionCount": 3035,
+  "releasedQuestionCount": 3244,
   "collections": [
     {
       "id": "ox3000-a1",
@@ -135,7 +135,7 @@
           "rangeEnd": 734,
           "firstHeadword": "interaction",
           "lastHeadword": "wrist",
-          "availableCount": 102,
+          "availableCount": 197,
           "dataFile": "ox5000-b2-p2.json"
         }
       ]
@@ -162,7 +162,7 @@
           "rangeEnd": 1402,
           "firstHeadword": "invoke",
           "lastHeadword": "youngster",
-          "availableCount": 158,
+          "availableCount": 272,
           "dataFile": "ox5000-c1-p2.json"
         }
       ]
