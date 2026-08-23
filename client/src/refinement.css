@@ -308,7 +308,7 @@
   }
 
   .question-workspace {
-    padding: 0.75rem 0.9rem 0.65rem;
+    padding: 0.1rem 0.9rem 0.65rem;
   }
 
   .question-stage .question-copy {
@@ -348,7 +348,7 @@
   }
 
   .question-stage .answer-grid {
-    margin-top: 1.75rem;
+    margin-top: 2.25rem;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -383,7 +383,7 @@
 
   .question-stage .definition-panel {
     min-height: 60px;
-    margin-top: 0.5rem;
+    margin-top: 0.75rem;
     padding: 0.5rem 0.68rem;
     border-top: 1px solid var(--rule);
     grid-template-columns: minmax(160px, 0.68fr) minmax(0, 1.32fr);

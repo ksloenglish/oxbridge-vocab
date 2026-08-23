@@ -57,3 +57,9 @@ Visual comparison at the same 1366 px width proves the coarse-pointer rule is is
 Physical iPad feedback showed that the compact Question composition left the word-range eyebrow, question sentence, and answer grid visually too close. The touch-tablet layer now increases the eyebrow-to-sentence gap from 5.59 px to 10.39 px and the sentence-to-options gap from 10.39 px to 28 px. On Home, the question-count-selector-to-Current-selection gap increases from 26.39 px to 40.78 px.
 
 Visual review at 1024×715 confirms that all three boundaries read as deliberate editorial spaces rather than touching blocks. The compact Question still retains its full brand header, progress ledger, folio rail, two-column 52 px choices, selected-option definition, footer, and no-scroll fit. The Home screen remains a balanced two-panel folio with the new Current selection gap clearly visible above the navy summary strip.
+
+## iPad Question spacing fine-tuning
+
+Further physical-iPad feedback requested less space above the word-range eyebrow and more separation both before the options and before the definition ledger. The final measured coarse-pointer tablet values are 1.59 px from workspace top to word range, 10.39 px from word range to sentence, 36 px from sentence to options, and 12 px from options to definition. The equal-width pointer-fine desktop values remain unchanged.
+
+An initial 40 px sentence-to-options and 16 px options-to-definition treatment overflowed one 1024×650 longest-resolved case by 12 px. The final 36 px and 12 px treatment preserves the requested visual hierarchy while restoring the complete no-scroll contract. All seventy-two tablet stress states, twenty-four phone states, and five interaction journeys pass with 52 px tablet choices, correct definition switching, visible navigation, and the footer intact.
