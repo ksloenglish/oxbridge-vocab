@@ -1,4 +1,5 @@
 /** Oxbridge Ledger: asymmetric editorial setup folio with large touch targets and dynamic availability. */
+// Oxbridge Ledger setup: portrait scholarship art on wide folios, established landscape crop on compact screens.
 import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, Play, RotateCcw } from "lucide-react";
 import { BrandLockup } from "@/components/BrandLockup";
@@ -7,7 +8,8 @@ import { getRangeLabel, normaliseSegmentMode } from "@/lib/exercise";
 import type { ReleaseCatalogue, SegmentMode } from "@/types";
 
 const QUESTION_COUNTS = [10, 20, 30, 40, 50, 100];
-const heroArt = `${import.meta.env.BASE_URL}assets/oxbridge-ledger-hero.png`;
+const desktopHeroArt = `${import.meta.env.BASE_URL}assets/oxbridge-scholarship-hero.webp`;
+const compactHeroArt = `${import.meta.env.BASE_URL}assets/oxbridge-ledger-hero.png`;
 
 interface SetupViewProps {
   catalogue: ReleaseCatalogue;
@@ -78,7 +80,10 @@ export function SetupView({
               through precise sentence-completion challenges.
             </p>
           </div>
-          <img className="brand-panel__art" src={heroArt} alt="" />
+          <picture aria-hidden="true">
+            <source media="(max-width: 820px)" srcSet={compactHeroArt} />
+            <img className="brand-panel__art" src={desktopHeroArt} alt="" />
+          </picture>
         </aside>
 
         <section className="setup-folio">

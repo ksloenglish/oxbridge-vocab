@@ -1,4 +1,5 @@
 /* Oxbridge Ledger: warm British editorial modernism, asymmetric folios, Scholar Blue, and tactile paper depth. */
+/* Oxbridge Ledger: navy-parchment editorial folio, scholarly imagery, measured responsive density. */
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -188,10 +189,13 @@ input:focus-visible + * {
   position: absolute;
   z-index: -2;
   inset: 0;
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.7;
+  object-position: 68% center;
+  opacity: 0.84;
+  filter: sepia(0.12) saturate(0.82) brightness(1.07) contrast(0.94);
 }
 
 .brand-panel__message {
@@ -480,8 +484,8 @@ input:focus-visible + * {
 
 .segment-card > span {
   color: var(--ink-soft);
-  font-size: 0.76rem;
-  line-height: 1.45;
+  font-size: 0.88rem;
+  line-height: 1.4;
 }
 
 .count-row {
@@ -1344,7 +1348,7 @@ input:focus-visible + * {
   }
 
   .segment-card > span {
-    font-size: 0.62rem;
+    font-size: 0.72rem;
   }
 
   .segment-card .range-count {
@@ -1402,6 +1406,12 @@ input:focus-visible + * {
   .brand-panel {
     min-height: 430px;
     padding: 1.3rem;
+  }
+
+  .brand-panel__art {
+    object-position: center;
+    opacity: 0.7;
+    filter: none;
   }
 
   .brand-panel__message {
@@ -1562,7 +1572,7 @@ input:focus-visible + * {
   }
 
   .segment-card > span {
-    font-size: 0.6rem;
+    font-size: 0.68rem;
     line-height: 1.2;
   }
 
