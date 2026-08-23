@@ -1,0 +1,198 @@
+{
+  "schemaVersion": 2,
+  "releaseVersion": "20260823.1102",
+  "generatedAtUtc": "2026-08-23T03:02:28+00:00",
+  "definitionLanguage": "zh-Hant",
+  "releasedQuestionCount": 3035,
+  "collections": [
+    {
+      "id": "ox3000-a1",
+      "label": "Oxford 3000 A1",
+      "cefrLevel": "A1",
+      "segments": [
+        {
+          "id": "ox3000-a1-p1",
+          "label": "First half",
+          "rangeStart": 1,
+          "rangeEnd": 519,
+          "firstHeadword": "about",
+          "lastHeadword": "man",
+          "availableCount": 220,
+          "dataFile": "ox3000-a1-p1.json"
+        },
+        {
+          "id": "ox3000-a1-p2",
+          "label": "Second half",
+          "rangeStart": 520,
+          "rangeEnd": 1038,
+          "firstHeadword": "many",
+          "lastHeadword": "yourself",
+          "availableCount": 264,
+          "dataFile": "ox3000-a1-p2.json"
+        }
+      ]
+    },
+    {
+      "id": "ox3000-a2",
+      "label": "Oxford 3000 A2",
+      "cefrLevel": "A2",
+      "segments": [
+        {
+          "id": "ox3000-a2-p1",
+          "label": "First half",
+          "rangeStart": 1,
+          "rangeEnd": 490,
+          "firstHeadword": "ability",
+          "lastHeadword": "least",
+          "availableCount": 265,
+          "dataFile": "ox3000-a2-p1.json"
+        },
+        {
+          "id": "ox3000-a2-p2",
+          "label": "Second half",
+          "rangeStart": 491,
+          "rangeEnd": 980,
+          "firstHeadword": "least",
+          "lastHeadword": "zero",
+          "availableCount": 274,
+          "dataFile": "ox3000-a2-p2.json"
+        }
+      ]
+    },
+    {
+      "id": "ox3000-b1",
+      "label": "Oxford 3000 B1",
+      "cefrLevel": "B1",
+      "segments": [
+        {
+          "id": "ox3000-b1-p1",
+          "label": "First half",
+          "rangeStart": 1,
+          "rangeEnd": 454,
+          "firstHeadword": "absolutely",
+          "lastHeadword": "level",
+          "availableCount": 236,
+          "dataFile": "ox3000-b1-p1.json"
+        },
+        {
+          "id": "ox3000-b1-p2",
+          "label": "Second half",
+          "rangeStart": 455,
+          "rangeEnd": 908,
+          "firstHeadword": "lie",
+          "lastHeadword": "youth",
+          "availableCount": 215,
+          "dataFile": "ox3000-b1-p2.json"
+        }
+      ]
+    },
+    {
+      "id": "ox3000-b2",
+      "label": "Oxford 3000 B2",
+      "cefrLevel": "B2",
+      "segments": [
+        {
+          "id": "ox3000-b2-p1",
+          "label": "First half",
+          "rangeStart": 1,
+          "rangeEnd": 417,
+          "firstHeadword": "abandon",
+          "lastHeadword": "issue",
+          "availableCount": 271,
+          "dataFile": "ox3000-b2-p1.json"
+        },
+        {
+          "id": "ox3000-b2-p2",
+          "label": "Second half",
+          "rangeStart": 418,
+          "rangeEnd": 834,
+          "firstHeadword": "joy",
+          "lastHeadword": "zone",
+          "availableCount": 227,
+          "dataFile": "ox3000-b2-p2.json"
+        }
+      ]
+    },
+    {
+      "id": "ox5000-b2",
+      "label": "Oxford 5000 B2",
+      "cefrLevel": "B2",
+      "segments": [
+        {
+          "id": "ox5000-b2-p1",
+          "label": "First half",
+          "rangeStart": 1,
+          "rangeEnd": 367,
+          "firstHeadword": "absorb",
+          "lastHeadword": "interact",
+          "availableCount": 208,
+          "dataFile": "ox5000-b2-p1.json"
+        },
+        {
+          "id": "ox5000-b2-p2",
+          "label": "Second half",
+          "rangeStart": 368,
+          "rangeEnd": 734,
+          "firstHeadword": "interaction",
+          "lastHeadword": "wrist",
+          "availableCount": 102,
+          "dataFile": "ox5000-b2-p2.json"
+        }
+      ]
+    },
+    {
+      "id": "ox5000-c1",
+      "label": "Oxford 5000 C1",
+      "cefrLevel": "C1",
+      "segments": [
+        {
+          "id": "ox5000-c1-p1",
+          "label": "First half",
+          "rangeStart": 1,
+          "rangeEnd": 701,
+          "firstHeadword": "abolish",
+          "lastHeadword": "invisible",
+          "availableCount": 220,
+          "dataFile": "ox5000-c1-p1.json"
+        },
+        {
+          "id": "ox5000-c1-p2",
+          "label": "Second half",
+          "rangeStart": 702,
+          "rangeEnd": 1402,
+          "firstHeadword": "invoke",
+          "lastHeadword": "youngster",
+          "availableCount": 158,
+          "dataFile": "ox5000-c1-p2.json"
+        }
+      ]
+    },
+    {
+      "id": "cambridge-c2",
+      "label": "Cambridge C2",
+      "cefrLevel": "C2",
+      "segments": [
+        {
+          "id": "cambridge-c2-p1",
+          "label": "First half",
+          "rangeStart": 1,
+          "rangeEnd": 402,
+          "firstHeadword": "abrupt",
+          "lastHeadword": "misinterpretation",
+          "availableCount": 218,
+          "dataFile": "cambridge-c2-p1.json"
+        },
+        {
+          "id": "cambridge-c2-p2",
+          "label": "Second half",
+          "rangeStart": 403,
+          "rangeEnd": 804,
+          "firstHeadword": "misplace",
+          "lastHeadword": "xenophobia",
+          "availableCount": 157,
+          "dataFile": "cambridge-c2-p2.json"
+        }
+      ]
+    }
+  ]
+}
