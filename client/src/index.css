@@ -524,7 +524,7 @@ input:focus-visible + * {
 }
 
 .selection-summary {
-  margin-top: 0.2rem;
+  margin-top: 2.1rem;
   padding: 1rem 1.1rem;
   display: grid;
   grid-template-columns: auto 1fr auto;
