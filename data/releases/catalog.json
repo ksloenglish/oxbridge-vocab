@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "releaseVersion": "20260824.1723",
-  "generatedAtUtc": "2026-08-24T09:23:59+00:00",
+  "releaseVersion": "20260825.0032",
+  "generatedAtUtc": "2026-08-24T16:33:12+00:00",
   "definitionLanguage": "zh-Hant",
-  "releasedQuestionCount": 3685,
+  "releasedQuestionCount": 4225,
   "collections": [
     {
       "id": "ox3000-a1",
@@ -27,7 +27,7 @@
           "rangeEnd": 1038,
           "firstHeadword": "many",
           "lastHeadword": "yourself",
-          "availableCount": 264,
+          "availableCount": 362,
           "dataFile": "ox3000-a1-p2.json"
         }
       ]
@@ -54,7 +54,7 @@
           "rangeEnd": 980,
           "firstHeadword": "least",
           "lastHeadword": "zero",
-          "availableCount": 274,
+          "availableCount": 386,
           "dataFile": "ox3000-a2-p2.json"
         }
       ]
@@ -81,7 +81,7 @@
           "rangeEnd": 908,
           "firstHeadword": "lie",
           "lastHeadword": "youth",
-          "availableCount": 215,
+          "availableCount": 331,
           "dataFile": "ox3000-b1-p2.json"
         }
       ]
@@ -98,7 +98,7 @@
           "rangeEnd": 417,
           "firstHeadword": "abandon",
           "lastHeadword": "issue",
-          "availableCount": 271,
+          "availableCount": 385,
           "dataFile": "ox3000-b2-p1.json"
         },
         {
@@ -108,7 +108,7 @@
           "rangeEnd": 834,
           "firstHeadword": "joy",
           "lastHeadword": "zone",
-          "availableCount": 227,
+          "availableCount": 327,
           "dataFile": "ox3000-b2-p2.json"
         }
       ]
