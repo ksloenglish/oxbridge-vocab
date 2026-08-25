@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "releaseVersion": "20260825.1038",
-  "generatedAtUtc": "2026-08-25T02:38:50+00:00",
+  "releaseVersion": "20260825.1604",
+  "generatedAtUtc": "2026-08-25T08:04:36+00:00",
   "definitionLanguage": "zh-Hant",
-  "releasedQuestionCount": 4470,
+  "releasedQuestionCount": 4696,
   "collections": [
     {
       "id": "ox3000-a1",
@@ -71,7 +71,7 @@
           "rangeEnd": 454,
           "firstHeadword": "absolutely",
           "lastHeadword": "level",
-          "availableCount": 236,
+          "availableCount": 349,
           "dataFile": "ox3000-b1-p1.json"
         },
         {
@@ -152,7 +152,7 @@
           "rangeEnd": 701,
           "firstHeadword": "abolish",
           "lastHeadword": "invisible",
-          "availableCount": 336,
+          "availableCount": 449,
           "dataFile": "ox5000-c1-p1.json"
         },
         {
