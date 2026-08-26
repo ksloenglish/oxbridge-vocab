@@ -216,12 +216,49 @@ input:focus-visible + * {
   letter-spacing: -0.045em;
 }
 
-.brand-panel__message > p:last-child {
+.brand-panel__description {
   margin: 0;
   max-width: 46ch;
   color: rgba(255, 255, 255, 0.8);
   font-size: clamp(1rem, 1.4vw, 1.14rem);
   line-height: 1.75;
+}
+
+.brand-panel__catalogue-total {
+  width: fit-content;
+  min-width: 13.5rem;
+  margin-top: 1.55rem;
+  padding-top: 0.72rem;
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: baseline;
+  column-gap: 0.48rem;
+  border-top: 1px solid rgba(240, 189, 82, 0.52);
+}
+
+.brand-panel__catalogue-total > span {
+  grid-column: 1 / -1;
+  margin-bottom: 0.18rem;
+  color: rgba(255, 255, 255, 0.64);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.brand-panel__catalogue-total strong {
+  color: #f3c45c;
+  font-family: "Fraunces", serif;
+  font-size: clamp(1.85rem, 3vw, 2.55rem);
+  line-height: 0.9;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+}
+
+.brand-panel__catalogue-total small {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.72rem;
+  line-height: 1.15;
 }
 
 .brand-lockup {
@@ -1287,10 +1324,28 @@ input:focus-visible + * {
     font-size: 0.62rem;
   }
 
-  .brand-panel__message > p:last-child {
+  .brand-panel__description {
     max-width: 38ch;
     font-size: 0.84rem;
     line-height: 1.45;
+  }
+
+  .brand-panel__catalogue-total {
+    min-width: 11.5rem;
+    margin-top: 0.95rem;
+    padding-top: 0.5rem;
+  }
+
+  .brand-panel__catalogue-total > span {
+    font-size: 0.5rem;
+  }
+
+  .brand-panel__catalogue-total strong {
+    font-size: 1.7rem;
+  }
+
+  .brand-panel__catalogue-total small {
+    font-size: 0.58rem;
   }
 
   .setup-folio {
@@ -1419,7 +1474,7 @@ input:focus-visible + * {
     margin-bottom: 0;
   }
 
-  .brand-panel__message > p:last-child {
+  .brand-panel__description {
     max-width: 60ch;
   }
 
@@ -1500,9 +1555,28 @@ input:focus-visible + * {
     font-size: 0.62rem;
   }
 
-  .brand-panel__message > p:last-child {
+  .brand-panel__description {
     font-size: 0.86rem;
     line-height: 1.48;
+  }
+
+  .brand-panel__catalogue-total {
+    min-width: 10.8rem;
+    margin-top: 0.78rem;
+    padding-top: 0.42rem;
+  }
+
+  .brand-panel__catalogue-total > span {
+    margin-bottom: 0.1rem;
+    font-size: 0.47rem;
+  }
+
+  .brand-panel__catalogue-total strong {
+    font-size: 1.55rem;
+  }
+
+  .brand-panel__catalogue-total small {
+    font-size: 0.55rem;
   }
 
   .setup-folio {

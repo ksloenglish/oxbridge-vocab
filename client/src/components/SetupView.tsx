@@ -8,8 +8,8 @@ import { getRangeLabel, normaliseSegmentMode } from "@/lib/exercise";
 import type { ReleaseCatalogue, SegmentMode } from "@/types";
 
 const QUESTION_COUNTS = [10, 20, 30, 40, 50, 100];
-const desktopHeroArt = `${import.meta.env.BASE_URL}assets/oxbridge-scholarship-hero.webp`;
-const compactHeroArt = `${import.meta.env.BASE_URL}assets/oxbridge-ledger-hero.png`;
+const desktopHeroArt = "/oxbridge-vocab/assets/oxbridge-scholarship-hero.webp";
+const compactHeroArt = "/oxbridge-vocab/assets/oxbridge-ledger-hero.png";
 
 interface SetupViewProps {
   catalogue: ReleaseCatalogue;
@@ -61,6 +61,9 @@ export function SetupView({
     (total, segment) => total + segment.availableCount,
     0,
   );
+  const formattedQuestionTotal = new Intl.NumberFormat("en-GB").format(
+    catalogue.releasedQuestionCount,
+  );
   const selectionLabel =
     effectiveMode === "full"
       ? "Full list"
@@ -75,10 +78,15 @@ export function SetupView({
           <div className="brand-panel__message">
             <p className="eyebrow">ESSENTIAL ENGLISH VOCABULARY</p>
             <h1 id="setup-title">Learn the words that matter most.</h1>
-            <p>
+            <p className="brand-panel__description">
               Practise the Oxford 3000, Oxford 5000, and C2 Proficiency word lists
               through precise sentence-completion challenges.
             </p>
+            <div className="brand-panel__catalogue-total" aria-label={`${formattedQuestionTotal} questions available`}>
+              <span>Current question bank</span>
+              <strong>{formattedQuestionTotal}</strong>
+              <small>questions available</small>
+            </div>
           </div>
           <picture aria-hidden="true">
             <source media="(max-width: 820px)" srcSet={compactHeroArt} />
