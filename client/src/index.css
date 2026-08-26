@@ -1522,7 +1522,7 @@ input:focus-visible + * {
 @media (max-width: 620px) {
   .brand-panel {
     min-height: 360px;
-    padding: 1rem;
+    padding: 1rem 1rem 2rem;
   }
 
   .brand-panel .brand-lockup {
@@ -1673,7 +1673,7 @@ input:focus-visible + * {
   }
 
   .selection-summary {
-    margin-top: 1.8rem;
+    margin-top: 0.9rem;
     padding: 0.68rem 0.72rem;
     grid-template-columns: auto 1fr auto;
     gap: 0.58rem;
