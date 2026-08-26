@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "releaseVersion": "20260826.1911",
-  "generatedAtUtc": "2026-08-26T11:11:53+00:00",
+  "releaseVersion": "20260827.0011",
+  "generatedAtUtc": "2026-08-26T16:11:50+00:00",
   "definitionLanguage": "zh-Hant",
-  "releasedQuestionCount": 4901,
+  "releasedQuestionCount": 5197,
   "collections": [
     {
       "id": "ox3000-a1",
@@ -54,7 +54,7 @@
           "rangeEnd": 980,
           "firstHeadword": "least",
           "lastHeadword": "zero",
-          "availableCount": 386,
+          "availableCount": 467,
           "dataFile": "ox3000-a2-p2.json"
         }
       ]
@@ -81,7 +81,7 @@
           "rangeEnd": 908,
           "firstHeadword": "lie",
           "lastHeadword": "youth",
-          "availableCount": 331,
+          "availableCount": 439,
           "dataFile": "ox3000-b1-p2.json"
         }
       ]
@@ -108,7 +108,7 @@
           "rangeEnd": 834,
           "firstHeadword": "joy",
           "lastHeadword": "zone",
-          "availableCount": 327,
+          "availableCount": 381,
           "dataFile": "ox3000-b2-p2.json"
         }
       ]
@@ -135,7 +135,7 @@
           "rangeEnd": 734,
           "firstHeadword": "interaction",
           "lastHeadword": "wrist",
-          "availableCount": 309,
+          "availableCount": 362,
           "dataFile": "ox5000-b2-p2.json"
         }
       ]
