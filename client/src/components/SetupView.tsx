@@ -84,8 +84,10 @@ export function SetupView({
             </p>
             <div className="brand-panel__catalogue-total" aria-label={`${formattedQuestionTotal} questions available`}>
               <span>Current question bank</span>
-              <strong>{formattedQuestionTotal}</strong>
-              <small>questions available</small>
+              <div className="brand-panel__catalogue-total-row">
+                <strong>{formattedQuestionTotal}</strong>
+                <small>questions available</small>
+              </div>
             </div>
           </div>
           <picture aria-hidden="true">
