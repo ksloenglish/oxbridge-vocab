@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "releaseVersion": "20260825.2159",
-  "generatedAtUtc": "2026-08-25T13:59:07+00:00",
+  "releaseVersion": "20260826.1616",
+  "generatedAtUtc": "2026-08-26T08:16:12+00:00",
   "definitionLanguage": "zh-Hant",
-  "releasedQuestionCount": 4787,
+  "releasedQuestionCount": 4841,
   "collections": [
     {
       "id": "ox3000-a1",
@@ -27,7 +27,7 @@
           "rangeEnd": 1038,
           "firstHeadword": "many",
           "lastHeadword": "yourself",
-          "availableCount": 362,
+          "availableCount": 416,
           "dataFile": "ox3000-a1-p2.json"
         }
       ]
