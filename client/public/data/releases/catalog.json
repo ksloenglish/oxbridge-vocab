@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "releaseVersion": "20260827.0011",
-  "generatedAtUtc": "2026-08-26T16:11:50+00:00",
+  "releaseVersion": "20260827.1727",
+  "generatedAtUtc": "2026-08-27T09:27:55+00:00",
   "definitionLanguage": "zh-Hant",
-  "releasedQuestionCount": 5197,
+  "releasedQuestionCount": 5478,
   "collections": [
     {
       "id": "ox3000-a1",
@@ -162,7 +162,7 @@
           "rangeEnd": 1402,
           "firstHeadword": "invoke",
           "lastHeadword": "youngster",
-          "availableCount": 272,
+          "availableCount": 382,
           "dataFile": "ox5000-c1-p2.json"
         }
       ]
@@ -179,7 +179,7 @@
           "rangeEnd": 402,
           "firstHeadword": "abrupt",
           "lastHeadword": "misinterpretation",
-          "availableCount": 218,
+          "availableCount": 275,
           "dataFile": "cambridge-c2-p1.json"
         },
         {
@@ -189,7 +189,7 @@
           "rangeEnd": 804,
           "firstHeadword": "misplace",
           "lastHeadword": "xenophobia",
-          "availableCount": 269,
+          "availableCount": 383,
           "dataFile": "cambridge-c2-p2.json"
         }
       ]
