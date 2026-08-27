@@ -1571,7 +1571,7 @@ input:focus-visible + * {
   }
 
   .brand-panel__catalogue-total-row {
-    gap: 0.26rem;
+    gap: 0.52rem;
   }
 
   .brand-panel__catalogue-total > span {
