@@ -181,8 +181,9 @@ input:focus-visible + * {
   inset: 0;
   z-index: -1;
   background:
-    linear-gradient(180deg, rgba(19, 34, 56, 0.02) 30%, rgba(19, 34, 56, 0.96) 88%),
-    linear-gradient(90deg, rgba(19, 34, 56, 0.82), rgba(19, 34, 56, 0.2));
+    repeating-linear-gradient(0deg, rgba(248, 229, 186, 0.06) 0 1px, transparent 1px 5px),
+    linear-gradient(180deg, rgba(19, 34, 56, 0.08) 26%, rgba(19, 34, 56, 0.95) 89%),
+    linear-gradient(90deg, rgba(19, 34, 56, 0.86), rgba(19, 34, 56, 0.17));
 }
 
 .brand-panel__art {
@@ -194,8 +195,8 @@ input:focus-visible + * {
   height: 100%;
   object-fit: cover;
   object-position: 68% center;
-  opacity: 0.84;
-  filter: sepia(0.12) saturate(0.82) brightness(1.07) contrast(0.94);
+  opacity: 0.78;
+  filter: sepia(0.22) saturate(0.72) brightness(1.15) contrast(0.84);
 }
 
 .brand-panel__message {
@@ -400,10 +401,22 @@ input:focus-visible + * {
 }
 
 .folio-section {
+  position: relative;
   min-width: 0;
   margin: 0;
-  padding: 0 0 1.7rem;
+  padding: 0 0 1.7rem 0.52rem;
   border: 0;
+}
+
+.folio-section::before {
+  content: "";
+  position: absolute;
+  top: 0.04rem;
+  bottom: 1.7rem;
+  left: 0;
+  width: 2px;
+  background: linear-gradient(var(--blue), rgba(36, 87, 166, 0.12));
+  opacity: 0.55;
 }
 
 .folio-section + .folio-section {
@@ -415,10 +428,11 @@ input:focus-visible + * {
 .folio-section legend {
   width: 100%;
   margin-bottom: 1rem;
-  padding: 0;
+  padding: 0 0 0.5rem;
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--rule) 72%, var(--blue));
   color: var(--ink);
   font-size: 0.9rem;
   font-weight: 800;
@@ -428,6 +442,15 @@ input:focus-visible + * {
   color: var(--blue);
   font-size: 0.72rem;
   letter-spacing: 0.08em;
+}
+
+.folio-section legend::after {
+  content: "";
+  flex: 1;
+  max-width: 4.4rem;
+  height: 2px;
+  background: var(--blue);
+  opacity: 0.24;
 }
 
 .collection-grid {
@@ -462,7 +485,9 @@ input:focus-visible + * {
   align-content: start;
   gap: 0.08rem;
   border: 1px solid var(--rule);
-  background: rgba(255, 255, 255, 0.72);
+  background:
+    linear-gradient(90deg, rgba(36, 87, 166, 0.1) 0 0.2rem, transparent 0.2rem),
+    rgba(255, 255, 255, 0.72);
 }
 
 .collection-card:hover {
@@ -472,7 +497,9 @@ input:focus-visible + * {
 
 .collection-card.is-selected {
   border-color: var(--blue);
-  background: var(--blue-pale);
+  background:
+    linear-gradient(90deg, var(--blue) 0 0.28rem, transparent 0.28rem),
+    var(--blue-pale);
   box-shadow: inset 4px 0 0 var(--blue);
 }
 
@@ -516,7 +543,9 @@ input:focus-visible + * {
   align-content: start;
   gap: 0.35rem;
   border: 1px solid var(--rule);
-  background: rgba(255, 255, 255, 0.78);
+  background:
+    linear-gradient(90deg, rgba(36, 87, 166, 0.1) 0 0.22rem, transparent 0.22rem),
+    rgba(255, 255, 255, 0.78);
 }
 
 .segment-card::before {
@@ -531,7 +560,9 @@ input:focus-visible + * {
 
 .segment-card.is-selected {
   border-color: var(--blue);
-  background: var(--blue-pale);
+  background:
+    linear-gradient(90deg, var(--blue) 0 0.3rem, transparent 0.3rem),
+    var(--blue-pale);
   box-shadow: 0 9px 20px rgba(36, 87, 166, 0.1);
 }
 
