@@ -1,4 +1,5 @@
 /** Oxbridge Ledger: single-state-machine shell joining setup, active exercise, persistence, and results. */
+// Oxbridge Ledger behaviour: protect saved local exercise progress behind explicit confirmation.
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertTriangle, LoaderCircle } from "lucide-react";
 import { SetupView } from "@/components/SetupView";
@@ -16,7 +17,7 @@ import type {
 const STORAGE_KEY = "kslo.oxbridge.savedExercise.v1";
 
 type Screen = "home" | "exercise" | "results";
-type ConfirmMode = "discard" | "quit" | null;
+type ConfirmMode = "discard" | "discard-saved" | "quit" | null;
 type PreviewMode = "question" | "results" | null;
 
 function getPreviewMode(): PreviewMode {
@@ -272,8 +273,13 @@ export default function App() {
     window.scrollTo({ top: 0 });
   };
 
+  const requestDiscardSavedExercise = () => {
+    if (!savedExercise) return;
+    setConfirmMode("discard-saved");
+  };
+
   const handleConfirm = () => {
-    if (confirmMode === "quit") {
+    if (confirmMode === "quit" || confirmMode === "discard-saved") {
       window.localStorage.removeItem(STORAGE_KEY);
       setSavedExercise(null);
       setExercise(null);
@@ -324,6 +330,7 @@ export default function App() {
           busy={busy}
           errorMessage={catalogueError}
           onResume={handleResume}
+          onDiscardSavedExercise={requestDiscardSavedExercise}
           onStart={requestStart}
         />
       )}
@@ -354,12 +361,18 @@ export default function App() {
             </span>
             <p className="eyebrow">Please confirm</p>
             <h2 id="confirm-title">
-              {confirmMode === "quit" ? "Quit this exercise?" : "Start a new exercise?"}
+              {confirmMode === "quit"
+                ? "Quit this exercise?"
+                : confirmMode === "discard-saved"
+                  ? "Discard saved exercise?"
+                  : "Start a new exercise?"}
             </h2>
             <p id="confirm-copy">
               {confirmMode === "quit"
                 ? "Your unfinished progress will be discarded and cannot be resumed."
-                : "Your saved unfinished exercise will be discarded before the new one begins."}
+                : confirmMode === "discard-saved"
+                  ? "Your unfinished progress will be removed from this device and cannot be resumed."
+                  : "Your saved unfinished exercise will be discarded before the new one begins."}
             </p>
             <div className="dialog-actions">
               <button
@@ -371,10 +384,14 @@ export default function App() {
                   setPendingStart(null);
                 }}
               >
-                Keep current exercise
+                {confirmMode === "discard-saved" ? "Keep saved exercise" : "Keep current exercise"}
               </button>
               <button className="button button--danger" type="button" onClick={handleConfirm}>
-                {confirmMode === "quit" ? "Quit and discard" : "Discard and start"}
+                {confirmMode === "quit"
+                  ? "Quit and discard"
+                  : confirmMode === "discard-saved"
+                    ? "Discard saved exercise"
+                    : "Discard and start"}
               </button>
             </div>
           </section>

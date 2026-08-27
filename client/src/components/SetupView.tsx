@@ -1,7 +1,7 @@
 /** Oxbridge Ledger: asymmetric editorial setup folio with large touch targets and dynamic availability. */
 // Oxbridge Ledger setup: portrait scholarship art on wide folios, established landscape crop on compact screens.
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Play, RotateCcw } from "lucide-react";
+import { ArrowRight, Play, RotateCcw, Trash2 } from "lucide-react";
 import { BrandLockup } from "@/components/BrandLockup";
 import { APP_VERSION } from "@/lib/appVersion";
 import { getRangeLabel, normaliseSegmentMode } from "@/lib/exercise";
@@ -18,6 +18,7 @@ interface SetupViewProps {
   busy: boolean;
   errorMessage: string | null;
   onResume: () => void;
+  onDiscardSavedExercise: () => void;
   onStart: (collectionId: string, mode: SegmentMode, count: number) => void;
 }
 
@@ -28,6 +29,7 @@ export function SetupView({
   busy,
   errorMessage,
   onResume,
+  onDiscardSavedExercise,
   onStart,
 }: SetupViewProps) {
   const [collectionId, setCollectionId] = useState(catalogue.collections[0].id);
@@ -103,10 +105,20 @@ export function SetupView({
                 <span className="folio-kicker">Unfinished exercise</span>
                 <strong>{savedSummary}</strong>
               </div>
-              <button className="button button--resume" type="button" onClick={onResume}>
-                <RotateCcw size={18} aria-hidden="true" />
-                Resume exercise
-              </button>
+              <div className="resume-banner__actions">
+                <button className="button button--resume" type="button" onClick={onResume}>
+                  <RotateCcw size={18} aria-hidden="true" />
+                  Resume exercise
+                </button>
+                <button
+                  className="button button--discard-saved"
+                  type="button"
+                  onClick={onDiscardSavedExercise}
+                >
+                  <Trash2 size={17} aria-hidden="true" />
+                  Discard saved exercise
+                </button>
+              </div>
             </div>
           )}
 
