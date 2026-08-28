@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "releaseVersion": "20260827.1727",
-  "generatedAtUtc": "2026-08-27T09:27:55+00:00",
+  "releaseVersion": "20260828.1041",
+  "generatedAtUtc": "2026-08-28T02:42:34+00:00",
   "definitionLanguage": "zh-Hant",
-  "releasedQuestionCount": 5478,
+  "releasedQuestionCount": 5649,
   "collections": [
     {
       "id": "ox3000-a1",
@@ -152,7 +152,7 @@
           "rangeEnd": 701,
           "firstHeadword": "abolish",
           "lastHeadword": "invisible",
-          "availableCount": 449,
+          "availableCount": 620,
           "dataFile": "ox5000-c1-p1.json"
         },
         {
