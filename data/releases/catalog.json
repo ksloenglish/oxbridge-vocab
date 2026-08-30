@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "releaseVersion": "20260828.1507",
-  "generatedAtUtc": "2026-08-28T07:08:38+00:00",
+  "releaseVersion": "20260830.1226",
+  "generatedAtUtc": "2026-08-30T04:26:43+00:00",
   "definitionLanguage": "zh-Hant",
-  "releasedQuestionCount": 5706,
+  "releasedQuestionCount": 5884,
   "collections": [
     {
       "id": "ox3000-a1",
@@ -44,7 +44,7 @@
           "rangeEnd": 490,
           "firstHeadword": "ability",
           "lastHeadword": "least",
-          "availableCount": 377,
+          "availableCount": 453,
           "dataFile": "ox3000-a2-p1.json"
         },
         {
@@ -71,7 +71,7 @@
           "rangeEnd": 454,
           "firstHeadword": "absolutely",
           "lastHeadword": "level",
-          "availableCount": 349,
+          "availableCount": 446,
           "dataFile": "ox3000-b1-p1.json"
         },
         {
@@ -135,7 +135,7 @@
           "rangeEnd": 734,
           "firstHeadword": "interaction",
           "lastHeadword": "wrist",
-          "availableCount": 362,
+          "availableCount": 367,
           "dataFile": "ox5000-b2-p2.json"
         }
       ]
