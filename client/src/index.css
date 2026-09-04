@@ -1218,7 +1218,6 @@ input:focus-visible + * {
   font-weight: 800;
   letter-spacing: 0.08em;
   line-height: 1;
-  text-transform: uppercase;
 }
 
 .review-list p {
