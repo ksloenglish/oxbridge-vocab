@@ -1,7 +1,7 @@
 {
-  "schemaVersion": 2,
-  "releaseVersion": "20260830.1226",
-  "generatedAtUtc": "2026-08-30T04:26:43+00:00",
+  "schemaVersion": 3,
+  "releaseVersion": "20260904.1902",
+  "generatedAtUtc": "2026-09-04T11:08:41+00:00",
   "definitionLanguage": "zh-Hant",
   "releasedQuestionCount": 5884,
   "collections": [

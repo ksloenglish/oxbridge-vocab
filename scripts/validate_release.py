@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 RELEASE_VERSION_PATTERN = re.compile(r"^\d{8}\.\d{4}$")
 COLLECTION_ORDER = [
     "ox3000-a1",
@@ -20,6 +20,7 @@ COLLECTION_ORDER = [
 ALLOWED_QUESTION_KEYS = {
     "id",
     "headword",
+    "partOfSpeech",
     "collectionId",
     "segmentId",
     "question",
@@ -158,6 +159,11 @@ def main() -> None:
                     fail(f"{prefix}: visible options must be unique")
                 if not isinstance(question["headword"], str) or not question["headword"].strip():
                     fail(f"{prefix}: missing headword")
+                if (
+                    not isinstance(question["partOfSpeech"], str)
+                    or not question["partOfSpeech"].strip()
+                ):
+                    fail(f"{prefix}: missing part-of-speech label")
                 if not isinstance(question["definition"], str) or not question["definition"].strip():
                     fail(f"{prefix}: missing definition")
                 option_definitions = question["optionDefinitions"]

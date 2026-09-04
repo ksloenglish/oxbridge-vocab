@@ -1,4 +1,5 @@
 /** Oxbridge Ledger: rewarding typographic results folio with a deterministic editorial celebration motif. */
+// Oxbridge Ledger Results: retain the two-column review folio; use small scholar-blue/saffron source labels beside headwords.
 import { useEffect, useState } from "react";
 import { ArrowRight, Check, ClipboardCopy, Clock3, Target, TriangleAlert } from "lucide-react";
 import { BrandLockup } from "@/components/BrandLockup";
@@ -100,7 +101,17 @@ export function ResultsView({
             <li key={question.id}>
               <span className="review-number">{String(index + 1).padStart(2, "0")}</span>
               <div>
-                <strong>{question.headword}</strong>
+                <div className="review-wordline">
+                  <strong>{question.headword}</strong>
+                  {question.partOfSpeech && (
+                    <span
+                      className="part-of-speech"
+                      aria-label={`Part of speech: ${question.partOfSpeech}`}
+                    >
+                      {question.partOfSpeech}
+                    </span>
+                  )}
+                </div>
                 <p>{question.definition}</p>
               </div>
             </li>

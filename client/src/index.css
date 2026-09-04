@@ -1201,6 +1201,26 @@ input:focus-visible + * {
   font-size: 1.25rem;
 }
 
+.review-wordline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.42rem;
+}
+
+.part-of-speech {
+  padding: 0.2rem 0.34rem 0.16rem;
+  border: 1px solid color-mix(in srgb, var(--blue) 42%, var(--rule));
+  border-left: 3px solid var(--saffron);
+  color: var(--blue-dark);
+  background: color-mix(in srgb, var(--blue-pale) 58%, var(--paper));
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
 .review-list p {
   margin: 0.35rem 0 0;
   color: var(--ink-soft);
@@ -1994,6 +2014,17 @@ input:focus-visible + * {
 
   .review-list strong {
     font-size: 0.96rem;
+  }
+
+  .review-wordline {
+    gap: 0.3rem;
+  }
+
+  .part-of-speech {
+    padding: 0.17rem 0.25rem 0.14rem;
+    border-left-width: 2px;
+    font-size: 0.5rem;
+    letter-spacing: 0.06em;
   }
 
   .review-list p {

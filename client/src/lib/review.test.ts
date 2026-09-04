@@ -42,6 +42,7 @@ describe("practised-word clipboard formatting", () => {
     expect(lines[1]).toBe("");
     expect(lines).toHaveLength(exercise.questions.length + 2);
     exercise.questions.forEach((question, index) => {
+      expect(question.partOfSpeech.trim()).not.toBe("");
       expect(lines[index + 2]).toBe(
         `${index + 1}. ${question.headword} — ${question.definition}`,
       );

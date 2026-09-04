@@ -1,7 +1,7 @@
 /** Oxbridge Ledger: cache-aware static release loading; no private or generated content enters the runtime. */
 import type { ReleaseCatalogue, SegmentRelease } from "@/types";
 
-const RELEASE_SCHEMA_VERSION = 2;
+const RELEASE_SCHEMA_VERSION = 3;
 
 function releaseUrl(filename: string, releaseVersion?: string): string {
   const url = new URL(`data/releases/${filename}`, document.baseURI);

@@ -2,6 +2,8 @@
 export interface ReleaseQuestion {
   id: string;
   headword: string;
+  /** Existing master `pos_raw` label; public-safe display metadata, not provenance. */
+  partOfSpeech: string;
   collectionId: string;
   segmentId: string;
   question: string;
