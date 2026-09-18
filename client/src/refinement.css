@@ -371,7 +371,7 @@
   }
 
   .question-stage .answer-option > strong {
-    font-size: clamp(0.88rem, 1.7vw, 1rem);
+    font-size: 1.125rem;
   }
 
   .question-stage .answer-option .option-status {
