@@ -1,9 +1,9 @@
 {
   "schemaVersion": 3,
-  "releaseVersion": "20260925.1109",
-  "generatedAtUtc": "2026-09-25T03:10:17+00:00",
+  "releaseVersion": "20260925.1328",
+  "generatedAtUtc": "2026-09-25T05:31:19+00:00",
   "definitionLanguage": "zh-Hant",
-  "releasedQuestionCount": 6197,
+  "releasedQuestionCount": 6335,
   "collections": [
     {
       "id": "ox3000-a1",
@@ -179,7 +179,7 @@
           "rangeEnd": 402,
           "firstHeadword": "abrupt",
           "lastHeadword": "misinterpretation",
-          "availableCount": 275,
+          "availableCount": 400,
           "dataFile": "cambridge-c2-p1.json"
         },
         {
@@ -189,7 +189,7 @@
           "rangeEnd": 804,
           "firstHeadword": "misplace",
           "lastHeadword": "xenophobia",
-          "availableCount": 383,
+          "availableCount": 396,
           "dataFile": "cambridge-c2-p2.json"
         }
       ]
