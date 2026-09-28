@@ -228,6 +228,21 @@
     padding: 0.5rem 0 0.65rem;
   }
 
+  /* Sentence bounds for the compact reading desk. The floor is a readable size, not the
+     norm: the desk normally renders larger and only steps down when the room runs out. */
+  body .exercise-page {
+    --sentence-min-px: 24px;
+    /* A generous ceiling: the desk grows the sentence until the room runs out, so on a
+       large iPad the spare height becomes type size rather than blank space. Kept at
+       80px so the sentence never grows past roughly half the stage and the answer
+       options keep their visual weight. */
+    --sentence-max-px: 80px;
+    /* An upper bound, not the target: this only stops a pathological wall of text. */
+    --sentence-max-lines: 6;
+    /* The compact desk must fit the whole exercise on one screen. */
+    --sentence-no-scroll: 1;
+  }
+
   .exercise-header {
     min-height: 48px;
     padding: 0 0.2rem 0.35rem;
@@ -258,27 +273,29 @@
     font-size: 0.78rem;
   }
 
-  .exercise-ledger {
-    margin: 0.35rem 0;
-    padding: 0.38rem 0.7rem 0.42rem;
+  /* Scoped past the single-class base rules in index.css: this sheet is imported first,
+     so an unscoped rule of equal specificity would silently lose to the desktop base. */
+  body .exercise-page .exercise-ledger {
+    margin: 0.28rem 0;
+    padding: 0.26rem 0.7rem 0.3rem;
     grid-template-columns: auto minmax(120px, 1fr) auto auto;
     gap: 0.7rem;
   }
 
-  .ledger-metric {
+  body .exercise-page .ledger-metric {
     gap: 0.08rem;
   }
 
-  .ledger-metric > span {
+  body .exercise-page .ledger-metric > span {
     font-size: 0.51rem;
     letter-spacing: 0.075em;
   }
 
-  .ledger-metric strong {
+  body .exercise-page .ledger-metric strong {
     font-size: 0.9rem;
   }
 
-  .ledger-progress {
+  body .exercise-page .ledger-progress {
     height: 5px;
   }
 
@@ -309,7 +326,7 @@
   }
 
   .question-workspace {
-    padding: 0.1rem 0.9rem 0.65rem;
+    padding: 0.1rem 0.9rem 0.3rem;
   }
 
   .question-stage .question-copy {
@@ -322,34 +339,25 @@
     letter-spacing: 0.08em;
   }
 
+  /* The sentence takes its size from the reading desk measurement, so this rule only
+     fixes the metrics that must not scale with it. `text-wrap: balance` is deliberately
+     absent: it evens out the line lengths, which on a long sentence produced a short
+     final line and an apparent arbitrary break. Normal wrapping fills each line. */
   .question-stage .question-copy h1 {
     margin-top: 0.65rem;
     line-height: 1.13;
-    text-wrap: balance;
-  }
-
-  .question-copy h1.sentence-size--short {
-    font-size: clamp(1.7rem, 3.5vw, 2rem);
-  }
-
-  .question-copy h1.sentence-size--medium {
-    font-size: clamp(1.5rem, 2.7vw, 1.7rem);
-  }
-
-  .question-copy h1.sentence-size--long {
-    font-size: clamp(1.35rem, 2.55vw, 1.55rem);
-  }
-
-  .question-copy h1.sentence-size--extra-long {
-    font-size: clamp(1.18rem, 2.2vw, 1.38rem);
+    text-wrap: normal;
+    font-size: var(--sentence-min-px, 24px);
   }
 
   .keyboard-hint {
     display: none;
   }
 
+  /* Breathing space below the question. Deliberately larger than the 36px contract
+     minimum so a tall sentence is never crowded against the option boxes. */
   .question-stage .answer-grid {
-    margin-top: 2.25rem;
+    margin-top: 3.25rem;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -382,10 +390,14 @@
     display: none;
   }
 
+  /* One fixed height for the panel in every state: the unanswered placeholder and the
+     tallest revealed definition (measured at 86px) both fit inside it, so choosing an
+     option never changes the desk's free height and never resizes the sentence. */
   .question-stage .definition-panel {
-    min-height: 60px;
+    min-height: 5.6rem;
+    /* Measured contract: 12 px from the options to the definition. */
     margin-top: 0.75rem;
-    padding: 0.5rem 0.68rem;
+    padding: 0.42rem 0.68rem;
     border-top: 1px solid var(--rule);
     grid-template-columns: minmax(160px, 0.68fr) minmax(0, 1.32fr);
     gap: 0.65rem;
@@ -404,12 +416,18 @@
   }
 
   .definition-copy strong {
-    font-size: 0.88rem;
-    line-height: 1.3;
+    font-size: 0.85rem;
+    line-height: 1.26;
   }
 
   .question-stage .question-navigation {
-    margin-top: 0.45rem;
+    margin-top: 0.32rem;
+  }
+  /* Before the first choice the row is present but invisible, so the desk always reserves
+     the same height and the sentence keeps one size for the whole question. */
+  .question-stage .question-navigation.is-reserved {
+    display: flex;
+    visibility: hidden;
   }
 
   .question-stage .question-navigation .button {
@@ -429,6 +447,17 @@
     width: 100%;
     min-height: calc(100svh - 2px);
     padding: 0.35rem 0.45rem 0.4rem;
+  }
+
+  /* Sentence bounds for the phone reading desk. The floor stays above the previous
+     extra-long size, which measured only 16.6 px on a 390 px screen. */
+  body .exercise-page {
+    --sentence-min-px: 20px;
+    --sentence-max-px: 34px;
+    /* The phone has the least width and the most height to spare, so a long sentence is
+       allowed more lines rather than being shrunk to fit a narrow column. */
+    --sentence-max-lines: 8;
+    --sentence-no-scroll: 1;
   }
 
   .exercise-header {
@@ -530,29 +559,14 @@
     white-space: nowrap;
   }
 
-  .question-copy h1 {
+  /* Scoped to beat the single-class phone rule in index.css, which this sheet cannot
+     override on source order alone. The reading desk owns this font size. */
+  .question-stage .question-copy h1 {
     margin: 0.25rem 0 0;
     line-height: 1.14;
     letter-spacing: -0.028em;
-    text-wrap: pretty;
-  }
-
-  .question-copy h1.sentence-size--short {
-    font-size: clamp(1.48rem, 6.7vw, 1.68rem);
-  }
-
-  .question-copy h1.sentence-size--medium {
-    font-size: clamp(1.28rem, 5.8vw, 1.48rem);
-  }
-
-  .question-copy h1.sentence-size--long {
-    font-size: clamp(1.1rem, 4.9vw, 1.28rem);
-  }
-
-  .question-copy h1.sentence-size--extra-long {
-    font-size: clamp(0.98rem, 4.25vw, 1.12rem);
-    line-height: 1.16;
-    letter-spacing: -0.015em;
+    text-wrap: normal;
+    font-size: var(--sentence-min-px, 20px);
   }
 
   .question-copy .sentence-blank {
@@ -669,6 +683,9 @@
   .question-navigation {
     margin-top: 0.45rem;
   }
+  /* The phone deliberately keeps its space-saving layout: the placeholder is hidden and
+     the navigation row is not reserved, so a smaller screen keeps every pixel for the
+     sentence. Only the tablet desk reserves both. */
 
   .question-navigation .button {
     min-width: 0;

@@ -1,10 +1,11 @@
 /** Oxbridge Ledger: asymmetric reading desk with unambiguous multi-modal feedback and keyboard access. */
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { ArrowRight, Check, Clock3, LogOut, X } from "lucide-react";
 import { BrandLockup } from "@/components/BrandLockup";
 import { APP_VERSION } from "@/lib/appVersion";
 import { formatActiveTime } from "@/lib/exercise";
 import { getSentenceSizeClass } from "@/lib/questionPresentation";
+import { useAdaptiveSentenceSize } from "@/hooks/useAdaptiveSentenceSize";
 import type { ExerciseSnapshot } from "@/types";
 import "../refinement.css";
 
@@ -35,6 +36,15 @@ export function QuestionView({
     ? question.optionDefinitions[feedbackOption]
     : null;
   const sentenceSizeClass = getSentenceSizeClass(question.question);
+  const sentenceRef = useRef<HTMLHeadingElement>(null);
+
+  // The length band above is only the first guess: the sentence is then measured on the
+  // real reading desk and given the largest size that fits the space it actually has.
+  useAdaptiveSentenceSize(sentenceRef, [
+    question.id,
+    progress.resolved,
+    progress.attemptedOptions.length,
+  ]);
 
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
@@ -94,7 +104,7 @@ export function QuestionView({
             <p className="eyebrow">
               {exercise.selection.collectionLabel} · {exercise.selection.segmentLabel}
             </p>
-            <h1 id="question-heading" className={sentenceSizeClass}>
+            <h1 id="question-heading" className={sentenceSizeClass} ref={sentenceRef}>
               {beforeBlank}
               <span className="sentence-blank" aria-label="blank">
                 <span>?</span>
@@ -184,14 +194,24 @@ export function QuestionView({
             )}
           </div>
 
-          {progress.resolved && (
-            <div className="question-navigation">
-              <button className="button button--primary" type="button" onClick={onNext}>
-                {questionNumber === total ? "Finish exercise" : "Next question"}
-                <ArrowRight size={20} aria-hidden="true" />
-              </button>
-            </div>
-          )}
+          {/* Always rendered, only hidden until the question is resolved. Mounting the row
+              on resolve added the button's height to the desk, which changed the free
+              height and resized the sentence part-way through a question. */}
+          <div
+            className={`question-navigation${progress.resolved ? "" : " is-reserved"}`}
+            aria-hidden={!progress.resolved}
+          >
+            <button
+              className="button button--primary"
+              type="button"
+              onClick={onNext}
+              disabled={!progress.resolved}
+              tabIndex={progress.resolved ? 0 : -1}
+            >
+              {questionNumber === total ? "Finish exercise" : "Next question"}
+              <ArrowRight size={20} aria-hidden="true" />
+            </button>
+          </div>
         </div>
       </section>
 

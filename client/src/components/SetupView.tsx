@@ -5,9 +5,14 @@ import { ArrowRight, Play, RotateCcw, Trash2 } from "lucide-react";
 import { BrandLockup } from "@/components/BrandLockup";
 import { APP_VERSION } from "@/lib/appVersion";
 import { getRangeLabel, normaliseSegmentMode } from "@/lib/exercise";
+import {
+  QUESTION_COUNTS,
+  readSetupPreference,
+  resolveSetupPreference,
+  writeSetupPreference,
+} from "@/lib/setupPreference";
 import type { ReleaseCatalogue, SegmentMode } from "@/types";
 
-const QUESTION_COUNTS = [10, 20, 30, 40, 50, 100];
 const desktopHeroArt = "/oxbridge-vocab/assets/oxbridge-scholarship-hero.webp";
 const compactHeroArt = "/oxbridge-vocab/assets/oxbridge-ledger-hero.png";
 
@@ -32,13 +37,22 @@ export function SetupView({
   onDiscardSavedExercise,
   onStart,
 }: SetupViewProps) {
-  const [collectionId, setCollectionId] = useState(catalogue.collections[0].id);
+  // The remembered folio is restored once on mount, then every change is stored so it
+  // survives finishing an exercise, Play again, or a later visit.
+  const [initial] = useState(() =>
+    resolveSetupPreference(catalogue, readSetupPreference()),
+  );
+  const [collectionId, setCollectionId] = useState(initial.collectionId);
   const collection =
     catalogue.collections.find((item) => item.id === collectionId) ??
     catalogue.collections[0];
-  const [mode, setMode] = useState<SegmentMode>(collection.segments[0].id);
-  const [count, setCount] = useState(10);
+  const [mode, setMode] = useState<SegmentMode>(initial.mode);
+  const [count, setCount] = useState(initial.count);
   const effectiveMode = normaliseSegmentMode(collection, mode);
+
+  useEffect(() => {
+    writeSetupPreference({ collectionId, mode: effectiveMode, count });
+  }, [collectionId, effectiveMode, count]);
 
   useEffect(() => {
     if (effectiveMode !== mode) setMode(effectiveMode);
