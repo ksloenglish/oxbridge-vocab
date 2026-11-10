@@ -1,9 +1,9 @@
 {
   "schemaVersion": 3,
-  "releaseVersion": "20261110.2228",
-  "generatedAtUtc": "2026-11-10T14:36:51+00:00",
+  "releaseVersion": "20261111.0010",
+  "generatedAtUtc": "2026-11-10T16:16:23+00:00",
   "definitionLanguage": "zh-Hant",
-  "releasedQuestionCount": 6506,
+  "releasedQuestionCount": 6571,
   "collections": [
     {
       "id": "ox3000-a1",
@@ -98,7 +98,7 @@
           "rangeEnd": 417,
           "firstHeadword": "abandon",
           "lastHeadword": "issue",
-          "availableCount": 385,
+          "availableCount": 416,
           "dataFile": "ox3000-b2-p1.json"
         },
         {
@@ -108,7 +108,7 @@
           "rangeEnd": 834,
           "firstHeadword": "joy",
           "lastHeadword": "zone",
-          "availableCount": 383,
+          "availableCount": 417,
           "dataFile": "ox3000-b2-p2.json"
         }
       ]
