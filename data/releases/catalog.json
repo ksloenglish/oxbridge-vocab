@@ -1,9 +1,9 @@
 {
   "schemaVersion": 3,
-  "releaseVersion": "20261111.0010",
-  "generatedAtUtc": "2026-11-10T16:16:23+00:00",
+  "releaseVersion": "20261111.0100",
+  "generatedAtUtc": "2026-11-10T17:08:13+00:00",
   "definitionLanguage": "zh-Hant",
-  "releasedQuestionCount": 6571,
+  "releasedQuestionCount": 6587,
   "collections": [
     {
       "id": "ox3000-a1",
@@ -71,7 +71,7 @@
           "rangeEnd": 454,
           "firstHeadword": "absolutely",
           "lastHeadword": "level",
-          "availableCount": 453,
+          "availableCount": 454,
           "dataFile": "ox3000-b1-p1.json"
         },
         {
@@ -81,7 +81,7 @@
           "rangeEnd": 908,
           "firstHeadword": "lie",
           "lastHeadword": "youth",
-          "availableCount": 447,
+          "availableCount": 454,
           "dataFile": "ox3000-b1-p2.json"
         }
       ]
@@ -98,7 +98,7 @@
           "rangeEnd": 417,
           "firstHeadword": "abandon",
           "lastHeadword": "issue",
-          "availableCount": 416,
+          "availableCount": 417,
           "dataFile": "ox3000-b2-p1.json"
         },
         {
@@ -125,7 +125,7 @@
           "rangeEnd": 367,
           "firstHeadword": "absorb",
           "lastHeadword": "interact",
-          "availableCount": 366,
+          "availableCount": 367,
           "dataFile": "ox5000-b2-p1.json"
         },
         {
@@ -152,7 +152,7 @@
           "rangeEnd": 701,
           "firstHeadword": "abolish",
           "lastHeadword": "invisible",
-          "availableCount": 695,
+          "availableCount": 701,
           "dataFile": "ox5000-c1-p1.json"
         },
         {
