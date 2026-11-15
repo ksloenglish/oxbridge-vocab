@@ -1,9 +1,9 @@
 {
   "schemaVersion": 3,
-  "releaseVersion": "20261115.1417",
-  "generatedAtUtc": "2026-11-15T06:23:10+00:00",
+  "releaseVersion": "20261115.1545",
+  "generatedAtUtc": "2026-11-15T08:02:17+00:00",
   "definitionLanguage": "zh-Hant",
-  "releasedQuestionCount": 6624,
+  "releasedQuestionCount": 6698,
   "collections": [
     {
       "id": "ox3000-a1",
@@ -17,7 +17,7 @@
           "rangeEnd": 519,
           "firstHeadword": "about",
           "lastHeadword": "man",
-          "availableCount": 486,
+          "availableCount": 519,
           "dataFile": "ox3000-a1-p1.json"
         },
         {
@@ -27,7 +27,7 @@
           "rangeEnd": 1038,
           "firstHeadword": "many",
           "lastHeadword": "yourself",
-          "availableCount": 477,
+          "availableCount": 518,
           "dataFile": "ox3000-a1-p2.json"
         }
       ]
