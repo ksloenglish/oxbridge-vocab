@@ -1,9 +1,9 @@
 {
   "schemaVersion": 3,
-  "releaseVersion": "20261115.1545",
-  "generatedAtUtc": "2026-11-15T08:02:17+00:00",
+  "releaseVersion": "20261115.1718",
+  "generatedAtUtc": "2026-11-15T09:20:52+00:00",
   "definitionLanguage": "zh-Hant",
-  "releasedQuestionCount": 6698,
+  "releasedQuestionCount": 6700,
   "collections": [
     {
       "id": "ox3000-a1",
@@ -27,7 +27,7 @@
           "rangeEnd": 1038,
           "firstHeadword": "many",
           "lastHeadword": "yourself",
-          "availableCount": 518,
+          "availableCount": 519,
           "dataFile": "ox3000-a1-p2.json"
         }
       ]
@@ -54,7 +54,7 @@
           "rangeEnd": 980,
           "firstHeadword": "least",
           "lastHeadword": "zero",
-          "availableCount": 489,
+          "availableCount": 490,
           "dataFile": "ox3000-a2-p2.json"
         }
       ]
