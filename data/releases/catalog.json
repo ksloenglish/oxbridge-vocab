@@ -1,9 +1,9 @@
 {
   "schemaVersion": 3,
-  "releaseVersion": "20261111.0100",
-  "generatedAtUtc": "2026-11-10T17:08:13+00:00",
+  "releaseVersion": "20261115.1417",
+  "generatedAtUtc": "2026-11-15T06:23:10+00:00",
   "definitionLanguage": "zh-Hant",
-  "releasedQuestionCount": 6587,
+  "releasedQuestionCount": 6624,
   "collections": [
     {
       "id": "ox3000-a1",
@@ -44,7 +44,7 @@
           "rangeEnd": 490,
           "firstHeadword": "ability",
           "lastHeadword": "least",
-          "availableCount": 453,
+          "availableCount": 490,
           "dataFile": "ox3000-a2-p1.json"
         },
         {
