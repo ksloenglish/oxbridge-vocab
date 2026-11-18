@@ -167,7 +167,7 @@ export function QuestionView({
                         ? progress.firstAttemptCorrect
                           ? "Correct on the first attempt"
                           : "Correct — nicely recovered"
-                        : "Not quite — use the definition and try again"}
+                        : "Not quite — look at the definition and try again"}
                     </span>
                     <span className="feedback-text--mobile">
                       {progress.resolved

@@ -1,7 +1,7 @@
 /** Oxbridge Ledger: rewarding typographic results folio with a deterministic editorial celebration motif. */
 // Oxbridge Ledger Results: retain the two-column review folio; use small scholar-blue/saffron source labels beside headwords.
 import { useEffect, useState } from "react";
-import { ArrowRight, Check, ClipboardCopy, Clock3, Target, TriangleAlert } from "lucide-react";
+import { ArrowRight, Check, ClipboardCopy, Clock3, RotateCcw, Target, TriangleAlert } from "lucide-react";
 import { BrandLockup } from "@/components/BrandLockup";
 import { APP_VERSION } from "@/lib/appVersion";
 import { formatActiveTime, getPerformanceRemark } from "@/lib/exercise";
@@ -12,9 +12,11 @@ type CopyStatus = "idle" | "copying" | "success" | "error";
 
 export function ResultsView({
   exercise,
+  onRetry,
   onPlayAgain,
 }: {
   exercise: ExerciseSnapshot;
+  onRetry: () => void;
   onPlayAgain: () => void;
 }) {
   const total = exercise.questions.length;
@@ -120,6 +122,20 @@ export function ResultsView({
       </section>
 
       <div className="results-action">
+        <div className="retry-review-action">
+          <button
+            className="button button--primary button--retry"
+            type="button"
+            onClick={onRetry}
+            aria-describedby="retry-description"
+          >
+            <RotateCcw size={19} aria-hidden="true" />
+            Retry same exercise
+          </button>
+          <span className="retry-description" id="retry-description">
+            Same {total} questions and order. Score and timer start again.
+          </span>
+        </div>
         <div className="copy-review-action">
           <button
             className="button button--secondary"
@@ -150,8 +166,8 @@ export function ResultsView({
                 : ""}
           </span>
         </div>
-        <button className="button button--primary" type="button" onClick={onPlayAgain}>
-          Play again
+        <button className="button button--secondary button--new-exercise" type="button" onClick={onPlayAgain}>
+          New exercise
           <ArrowRight size={20} aria-hidden="true" />
         </button>
       </div>

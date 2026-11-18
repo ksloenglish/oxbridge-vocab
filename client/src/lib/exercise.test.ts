@@ -1,7 +1,7 @@
 /** Oxbridge Ledger: regression tests use the real minimised release, never invented learner-facing questions. */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   applyAttempt,
   buildExercise,
@@ -9,6 +9,7 @@ import {
   getPerformanceRemark,
   getRangeLabel,
   normaliseSegmentMode,
+  retryExercise,
 } from "./exercise";
 import type {
   CollectionCatalogueItem,
@@ -51,6 +52,32 @@ function buildRealFullList(
     catalogue.releaseVersion,
     seededRandom(seed),
   );
+}
+
+function completeExercise(exercise: ExerciseSnapshot): ExerciseSnapshot {
+  let score = 0;
+  const questionProgress = exercise.questions.map((question, index) => {
+    let progress = exercise.questionProgress[index];
+    if (index % 2 === 0) {
+      progress = applyAttempt(
+        question.answer,
+        progress,
+        score,
+        question.distractors[0],
+      ).progress;
+    }
+    const result = applyAttempt(question.answer, progress, score, question.answer);
+    score = result.score;
+    return result.progress;
+  });
+  return {
+    ...exercise,
+    status: "complete",
+    questionProgress,
+    currentIndex: exercise.questions.length - 1,
+    score,
+    elapsedMs: 268_350,
+  };
 }
 
 describe("approved question selection", () => {
@@ -126,6 +153,224 @@ describe("collection and segment selection", () => {
     expect(() => getRangeLabel(catalogue.collections[0], "foreign-segment")).toThrow(
       "not recognised",
     );
+  });
+});
+
+describe("retrying a completed exercise", () => {
+  const collection = catalogue.collections.find((item) => item.id === "ox3000-a2")!;
+
+  it("preserves exact full-list and single-segment counts, selection, questions and option order", () => {
+    const segment = loadSegment(collection.segments[0].dataFile);
+    const exercises = [
+      buildRealFullList(collection, 17, 10),
+      buildExercise(
+        collection,
+        segment.segmentId,
+        7,
+        { [segment.segmentId]: segment.questions },
+        catalogue.releaseVersion,
+        seededRandom(29),
+      ),
+    ];
+
+    for (const exercise of exercises) {
+      const completed = completeExercise(exercise);
+      const before = JSON.stringify(completed);
+      const retry = retryExercise(completed);
+
+      expect(retry.schemaVersion).toBe(completed.schemaVersion);
+      expect(retry.releaseVersion).toBe(completed.releaseVersion);
+      expect(retry.selection).toEqual(completed.selection);
+      expect(retry.questions).toHaveLength(completed.selection.requestedCount);
+      expect(retry.questions).toEqual(completed.questions);
+      expect(retry.questions.map((question) => question.id)).toEqual(
+        completed.questions.map((question) => question.id),
+      );
+      expect(retry.questions.map((question) => question.options)).toEqual(
+        completed.questions.map((question) => question.options),
+      );
+      expect(JSON.stringify(completed)).toBe(before);
+    }
+  });
+
+  it("creates independent nested objects, arrays and definition maps", () => {
+    const completed = completeExercise(buildRealFullList(collection, 31, 10));
+    const before = JSON.stringify(completed);
+    const retry = retryExercise(completed);
+
+    expect(retry).not.toBe(completed);
+    expect(retry.selection).not.toBe(completed.selection);
+    expect(retry.questions).not.toBe(completed.questions);
+    expect(retry.questionProgress).not.toBe(completed.questionProgress);
+    for (const [index, question] of retry.questions.entries()) {
+      expect(question).not.toBe(completed.questions[index]);
+      expect(question.options).not.toBe(completed.questions[index].options);
+      expect(question.distractors).not.toBe(completed.questions[index].distractors);
+      expect(question.optionDefinitions).not.toBe(
+        completed.questions[index].optionDefinitions,
+      );
+      expect(retry.questionProgress[index]).not.toBe(completed.questionProgress[index]);
+      expect(retry.questionProgress[index].attemptedOptions).not.toBe(
+        completed.questionProgress[index].attemptedOptions,
+      );
+      if (index > 0) {
+        expect(retry.questionProgress[index]).not.toBe(retry.questionProgress[0]);
+        expect(retry.questionProgress[index].attemptedOptions).not.toBe(
+          retry.questionProgress[0].attemptedOptions,
+        );
+      }
+    }
+
+    retry.selection.requestedCount = 1;
+    retry.questions[0].headword = "changed";
+    retry.questions[0].options.reverse();
+    retry.questions[0].distractors.reverse();
+    retry.questions[0].optionDefinitions[retry.questions[0].answer] = "changed";
+    retry.questions.reverse();
+    retry.questionProgress[0].attemptedOptions.push(retry.questions[0].answer);
+    retry.questionProgress[0].resolved = true;
+    retry.questionProgress.reverse();
+    expect(JSON.stringify(completed)).toBe(before);
+    expect(retry.questionProgress[0].attemptedOptions).toEqual([]);
+  });
+
+  it("resets every attempt, result and timer with a fresh UUID and current save time", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-11-18T01:00:00.000Z"));
+    const completed = completeExercise(buildRealFullList(collection, 41, 10));
+    const newSessionId = "f19c60fa-d2bb-4a40-b7e0-216a28c06481";
+    const randomUUID = vi.spyOn(crypto, "randomUUID").mockReturnValue(newSessionId);
+
+    try {
+      vi.setSystemTime(new Date("2026-11-19T02:03:04.567Z"));
+      const retry = retryExercise(completed);
+
+      expect(randomUUID).toHaveBeenCalledOnce();
+      expect(retry.sessionId).toBe(newSessionId);
+      expect(retry.sessionId).not.toBe(completed.sessionId);
+      expect(retry.savedAtUtc).toBe("2026-11-19T02:03:04.567Z");
+      expect(retry.savedAtUtc).not.toBe(completed.savedAtUtc);
+      expect(retry.status).toBe("active");
+      expect(retry.currentIndex).toBe(0);
+      expect(retry.score).toBe(0);
+      expect(retry.elapsedMs).toBe(0);
+      expect(retry.questionProgress).toEqual(
+        completed.questions.map(() => ({
+          attemptedOptions: [],
+          lastSelectedOption: null,
+          resolved: false,
+          firstAttemptCorrect: false,
+        })),
+      );
+      expect(completed.status).toBe("complete");
+      expect(completed.score).toBe(5);
+      expect(completed.elapsedMs).toBe(268_350);
+      expect(completed.questionProgress.every((progress) => progress.resolved)).toBe(true);
+    } finally {
+      randomUUID.mockRestore();
+      vi.useRealTimers();
+    }
+  });
+
+  it("serialises a retry and its in-progress state for deterministic resume", () => {
+    const completed = completeExercise(buildRealFullList(collection, 51, 10));
+    const retry = retryExercise(completed);
+    expect(JSON.parse(JSON.stringify(retry))).toEqual(retry);
+
+    const question = retry.questions[0];
+    const wrong = applyAttempt(
+      question.answer,
+      retry.questionProgress[0],
+      retry.score,
+      question.distractors[0],
+    );
+    retry.questionProgress[0] = wrong.progress;
+    retry.score = wrong.score;
+    retry.elapsedMs = 1_230;
+    const restored = JSON.parse(JSON.stringify(retry)) as ExerciseSnapshot;
+
+    expect(restored).toEqual(retry);
+    expect(restored.questions).toEqual(completed.questions);
+    const recovered = applyAttempt(
+      restored.questions[0].answer,
+      restored.questionProgress[0],
+      restored.score,
+      restored.questions[0].answer,
+    );
+    expect(recovered.score).toBe(0);
+    expect(recovered.progress.resolved).toBe(true);
+    expect(recovered.progress.firstAttemptCorrect).toBe(false);
+  });
+
+  it("supports repeated retries without replacing questions or sharing state between sessions", () => {
+    const completed = completeExercise(buildRealFullList(collection, 61, 10));
+    const first = retryExercise(completed);
+    const firstCompleted = completeExercise(first);
+    const before = JSON.stringify(firstCompleted);
+    const second = retryExercise(firstCompleted);
+    const third = retryExercise(completed);
+
+    expect(
+      new Set([completed.sessionId, first.sessionId, second.sessionId, third.sessionId]).size,
+    ).toBe(4);
+    for (const retry of [first, second, third]) {
+      expect(retry.questions).toEqual(completed.questions);
+      expect(retry.selection).toEqual(completed.selection);
+      expect(retry.score).toBe(0);
+      expect(
+        retry.questionProgress.every((progress) => progress.attemptedOptions.length === 0),
+      ).toBe(true);
+    }
+    second.questions[0].options.reverse();
+    second.questionProgress[0].attemptedOptions.push(second.questions[0].answer);
+    expect(first.questions).toEqual(completed.questions);
+    expect(third.questions).toEqual(completed.questions);
+    expect(first.questionProgress[0].attemptedOptions).toEqual([]);
+    expect(third.questionProgress[0].attemptedOptions).toEqual([]);
+    expect(JSON.stringify(firstCompleted)).toBe(before);
+  });
+
+  it("restores first-attempt eligibility while keeping wrong-then-correct retries scoreless", () => {
+    const completed = completeExercise(buildRealFullList(collection, 71, 10));
+    expect(completed.questionProgress[0].firstAttemptCorrect).toBe(false);
+    const retry = retryExercise(completed);
+    const first = applyAttempt(
+      retry.questions[0].answer,
+      retry.questionProgress[0],
+      retry.score,
+      retry.questions[0].answer,
+    );
+    expect(first.score).toBe(1);
+    expect(first.progress.firstAttemptCorrect).toBe(true);
+    expect(
+      applyAttempt(
+        retry.questions[0].answer,
+        first.progress,
+        first.score,
+        retry.questions[0].answer,
+      ).score,
+    ).toBe(1);
+
+    const question = retry.questions[1];
+    const wrong = applyAttempt(
+      question.answer,
+      retry.questionProgress[1],
+      first.score,
+      question.distractors[0],
+    );
+    const recovered = applyAttempt(question.answer, wrong.progress, wrong.score, question.answer);
+    expect(recovered.score).toBe(1);
+    expect(recovered.progress.resolved).toBe(true);
+    expect(recovered.progress.firstAttemptCorrect).toBe(false);
+    expect(completed.questionProgress[0].attemptedOptions).toHaveLength(2);
+  });
+
+  it("rejects active and empty snapshots", () => {
+    const active = buildRealFullList(collection, 81, 10);
+    expect(() => retryExercise(active)).toThrow("completed, non-empty");
+    expect(() =>
+      retryExercise({ ...completeExercise(active), questions: [], questionProgress: [] }),
+    ).toThrow("completed, non-empty");
   });
 });
 

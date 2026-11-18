@@ -122,6 +122,29 @@ export function buildExercise(
   };
 }
 
+/** Start a fresh attempt at the exact saved questions, without sampling or reshuffling. */
+export function retryExercise(completed: ExerciseSnapshot): ExerciseSnapshot {
+  if (completed.status !== "complete" || completed.questions.length === 0) {
+    throw new Error("Only a completed, non-empty exercise can be retried.");
+  }
+
+  return {
+    ...structuredClone(completed),
+    sessionId: crypto.randomUUID(),
+    status: "active",
+    questionProgress: completed.questions.map(() => ({
+      attemptedOptions: [],
+      lastSelectedOption: null,
+      resolved: false,
+      firstAttemptCorrect: false,
+    })),
+    currentIndex: 0,
+    score: 0,
+    elapsedMs: 0,
+    savedAtUtc: new Date().toISOString(),
+  };
+}
+
 export function applyAttempt(
   answer: string,
   progress: QuestionProgress,

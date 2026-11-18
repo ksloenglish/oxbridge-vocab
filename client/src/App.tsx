@@ -7,7 +7,7 @@ import { QuestionView } from "@/components/QuestionView";
 import { ResultsView } from "@/components/ResultsView";
 import { useActiveTimer } from "@/hooks/useActiveTimer";
 import { loadCatalogue, loadSegment } from "@/lib/data";
-import { applyAttempt, buildExercise } from "@/lib/exercise";
+import { applyAttempt, buildExercise, retryExercise } from "@/lib/exercise";
 import type {
   ExerciseSnapshot,
   ReleaseCatalogue,
@@ -294,6 +294,16 @@ export default function App() {
     setConfirmMode(null);
   };
 
+  const handleRetry = () => {
+    if (!exercise || exercise.status !== "complete") return;
+    const restarted = retryExercise(exercise);
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(restarted));
+    setSavedExercise(restarted);
+    setExercise(restarted);
+    setScreen("exercise");
+    window.scrollTo({ top: 0 });
+  };
+
   const handlePlayAgain = () => {
     window.localStorage.removeItem(STORAGE_KEY);
     setSavedExercise(null);
@@ -344,7 +354,11 @@ export default function App() {
         />
       )}
       {screen === "results" && exercise && (
-        <ResultsView exercise={exercise} onPlayAgain={handlePlayAgain} />
+        <ResultsView
+          exercise={exercise}
+          onRetry={handleRetry}
+          onPlayAgain={handlePlayAgain}
+        />
       )}
 
       {confirmMode && (

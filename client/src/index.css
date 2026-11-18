@@ -1260,6 +1260,7 @@ input:focus-visible + * {
 .results-action {
   padding: 2rem 0 1rem;
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: flex-end;
   gap: 0.85rem;
@@ -1267,6 +1268,30 @@ input:focus-visible + * {
 
 .results-action .button {
   min-width: 210px;
+}
+
+.results-action .button--new-exercise {
+  color: var(--jade);
+  background: var(--jade-pale);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--jade) 35%, var(--rule));
+}
+
+.results-action .button--new-exercise:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--jade) 12%, var(--jade-pale));
+  box-shadow: inset 0 0 0 1px var(--jade);
+}
+
+.retry-review-action {
+  display: grid;
+  gap: 0.45rem;
+  margin-right: auto;
+}
+
+.retry-description {
+  max-width: 280px;
+  color: var(--ink-soft);
+  font-size: 0.74rem;
+  line-height: 1.35;
 }
 
 .copy-review-action {
@@ -2083,18 +2108,36 @@ input:focus-visible + * {
 
   .copy-review-action .button {
     grid-column: 1;
+    grid-row: 3;
+  }
+
+  .results-action > .button--new-exercise {
+    grid-column: 2;
+    grid-row: 3;
+  }
+
+  .results-action .retry-review-action {
+    display: contents;
+  }
+
+  .results-action .button--retry {
+    grid-column: 1 / -1;
     grid-row: 1;
   }
 
-  .results-action > .button--primary {
-    grid-column: 2;
-    grid-row: 1;
+  .results-action .retry-description {
+    max-width: none;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    padding-bottom: 0.25rem;
+    text-align: center;
+    font-size: 0.66rem;
   }
 
   .copy-status {
     min-height: 0;
     grid-column: 1 / -1;
-    grid-row: 2;
+    grid-row: 4;
     font-size: 0.66rem;
   }
 
