@@ -7,6 +7,7 @@ import {
   type HighScoresList,
 } from "./highScores";
 import {
+  clearHighScoresStorage,
   readHighScoresStorage,
   writeHighScoresStorage,
 } from "./highScoresStorage";
@@ -275,5 +276,100 @@ describe("guarded high-score storage", () => {
     expect(result.warning).toContain("this visit only");
     expect(storage.setItem).not.toHaveBeenCalled();
     expect(storage.removeItem).not.toHaveBeenCalled();
+  });
+});
+
+describe("clearing only high-score storage", () => {
+  it("removes only the high-score key, preserving every other app/exercise key", () => {
+    const { storage, values } = fakeStorage();
+    values.set(HIGH_SCORES_STORAGE_KEY, JSON.stringify(listOf()));
+    expect(clearHighScoresStorage(storage)).toEqual({
+      list: emptyHighScores(),
+      persisted: true,
+      warning: null,
+    });
+    expect(storage.removeItem).toHaveBeenCalledOnce();
+    expect(storage.removeItem).toHaveBeenCalledWith(HIGH_SCORES_STORAGE_KEY);
+    expect(values.has(HIGH_SCORES_STORAGE_KEY)).toBe(false);
+    expect(storage.getItem).not.toHaveBeenCalled();
+    expect(storage.setItem).not.toHaveBeenCalled();
+    expectUnrelatedKeys(values);
+  });
+
+  it("is safe and idempotent when history is already empty", () => {
+    const { storage, values } = fakeStorage();
+    for (let n = 0; n < 2; n++) {
+      expect(clearHighScoresStorage(storage).persisted).toBe(true);
+    }
+    expect(storage.removeItem).toHaveBeenCalledTimes(2);
+    expectUnrelatedKeys(values);
+  });
+
+  it.each(["{broken", '{"schemaVersion":99,"entries":[]}', "null"])(
+    "removes unreadable score history %s without needing to parse it",
+    raw => {
+      const { storage, values } = fakeStorage();
+      values.set(HIGH_SCORES_STORAGE_KEY, raw);
+      expect(clearHighScoresStorage(storage).persisted).toBe(true);
+      expect(values.has(HIGH_SCORES_STORAGE_KEY)).toBe(false);
+      expect(storage.getItem).not.toHaveBeenCalled();
+      expectUnrelatedKeys(values);
+    }
+  );
+
+  it("reports visit-only clearing when removal is blocked and preserves persisted history", () => {
+    const { storage, values } = fakeStorage();
+    const original = JSON.stringify(listOf(2));
+    values.set(HIGH_SCORES_STORAGE_KEY, original);
+    vi.mocked(storage.removeItem).mockImplementation(() => {
+      throw new Error("private removal details");
+    });
+    const result = clearHighScoresStorage(storage);
+    expect(result.list).toEqual(emptyHighScores());
+    expect(result.persisted).toBe(false);
+    expect(result.warning).toContain("this visit only");
+    expect(result.warning).toContain("refreshing");
+    expect(result.warning).not.toContain("private removal details");
+    expect(storage.removeItem).toHaveBeenCalledOnce();
+    expect(storage.setItem).not.toHaveBeenCalled();
+    expect(values.get(HIGH_SCORES_STORAGE_KEY)).toBe(original);
+    expectUnrelatedKeys(values);
+  });
+
+  it("handles null storage and blocked default access without claiming deletion", () => {
+    expect(clearHighScoresStorage(null)).toMatchObject({
+      list: emptyHighScores(),
+      persisted: false,
+    });
+    vi.stubGlobal(
+      "window",
+      Object.defineProperty({}, "localStorage", {
+        get: () => {
+          throw new Error("SecurityError");
+        },
+      })
+    );
+    expect(() => clearHighScoresStorage()).not.toThrow();
+    expect(clearHighScoresStorage().persisted).toBe(false);
+  });
+
+  it("does not require a successful read before performing the explicit removal", () => {
+    const { storage, values } = fakeStorage();
+    values.set(HIGH_SCORES_STORAGE_KEY, "unreadable history");
+    vi.mocked(storage.getItem).mockImplementation(() => {
+      throw new Error("read blocked");
+    });
+    expect(clearHighScoresStorage(storage).persisted).toBe(true);
+    expect(storage.getItem).not.toHaveBeenCalled();
+    expect(values.has(HIGH_SCORES_STORAGE_KEY)).toBe(false);
+    expectUnrelatedKeys(values);
+  });
+
+  it("handles execution without window safely", () => {
+    vi.stubGlobal("window", undefined);
+    expect(clearHighScoresStorage()).toMatchObject({
+      list: emptyHighScores(),
+      persisted: false,
+    });
   });
 });

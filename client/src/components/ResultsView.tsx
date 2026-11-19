@@ -27,6 +27,7 @@ export function ResultsView({
   onPractiseTrickyWords,
   newHighScoreRank,
   highScorePersisted,
+  onHighScores,
 }: {
   exercise: ExerciseSnapshot;
   onRetry: () => void;
@@ -35,6 +36,7 @@ export function ResultsView({
   onPractiseTrickyWords: () => void;
   newHighScoreRank: number | null;
   highScorePersisted: boolean;
+  onHighScores: () => void;
 }) {
   const total = exercise.questions.length;
   const isTrickyWordPractice = exercise.kind === "tricky-words";
@@ -130,13 +132,24 @@ export function ResultsView({
       {!isTrickyWordPractice &&
         exercise.highScoreEligible === true &&
         newHighScoreRank !== null && (
-          <aside
+          <a
             className="new-high-score-notice"
-            role="status"
-            aria-live="polite"
+            href="#high-scores"
+            aria-label={`View high scores — ${newHighScoreRank === 1 ? "new personal best" : "new high score"}, rank ${newHighScoreRank}`}
+            onClick={event => {
+              if (
+                event.metaKey ||
+                event.ctrlKey ||
+                event.shiftKey ||
+                event.altKey
+              )
+                return;
+              event.preventDefault();
+              onHighScores();
+            }}
           >
             <Trophy size={21} aria-hidden="true" />
-            <div>
+            <div role="status" aria-live="polite">
               <h2>
                 {newHighScoreRank === 1
                   ? "New personal best!"
@@ -149,7 +162,12 @@ export function ResultsView({
                   : "Top-10 result for this visit only; it could not be saved."}
               </p>
             </div>
-          </aside>
+            <ArrowRight
+              className="new-high-score-link-icon"
+              size={20}
+              aria-hidden="true"
+            />
+          </a>
         )}
 
       {isTrickyWordPractice && (

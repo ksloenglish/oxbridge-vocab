@@ -85,6 +85,9 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>(() =>
     window.location.hash === "#high-scores" ? "high-scores" : "home"
   );
+  const screenRef = useRef<Screen>(screen);
+  screenRef.current = screen;
+  const highScoresReturnScreen = useRef<"home" | "results">("home");
   const [exercise, setExercise] = useState<ExerciseSnapshot | null>(null);
   const [savedExercise, setSavedExercise] = useState<ExerciseSnapshot | null>(
     () => readSavedExercise()
@@ -218,6 +221,10 @@ export default function App() {
   useEffect(() => {
     const onPageNavigation = () => {
       if (window.location.hash === "#high-scores") {
+        if (screenRef.current !== "high-scores") {
+          highScoresReturnScreen.current =
+            screenRef.current === "results" ? "results" : "home";
+        }
         startRequest.current += 1;
         setBusy(false);
         const current = exerciseRef.current;
@@ -233,7 +240,14 @@ export default function App() {
         setPendingStart(null);
         setScreen("high-scores");
       } else {
-        setScreen(current => (current === "high-scores" ? "home" : current));
+        const destination =
+          highScoresReturnScreen.current === "results" &&
+          exerciseRef.current?.status === "complete"
+            ? "results"
+            : "home";
+        setScreen(current =>
+          current === "high-scores" ? destination : current
+        );
       }
       window.scrollTo({ top: 0 });
     };
@@ -246,6 +260,8 @@ export default function App() {
   }, [timer.commit, highScores.refresh, saveSnapshot, previewMode]);
 
   const openHighScores = () => {
+    highScoresReturnScreen.current =
+      screenRef.current === "results" ? "results" : "home";
     startRequest.current += 1;
     setBusy(false);
     highScores.refresh();
@@ -259,6 +275,7 @@ export default function App() {
   };
 
   const closeHighScores = () => {
+    highScoresReturnScreen.current = "home";
     window.history.pushState(
       null,
       "",
@@ -266,6 +283,13 @@ export default function App() {
     );
     setScreen("home");
     window.scrollTo({ top: 0 });
+  };
+
+  const handleClearHighScores = () => {
+    const result = highScores.clearScores();
+    // Keep the completed summary, but stop advertising a rank that was cleared.
+    setNewHighScore(null);
+    return result;
   };
 
   useEffect(() => {
@@ -522,6 +546,7 @@ export default function App() {
           entries={highScores.list.entries}
           warning={highScores.warning}
           onBack={closeHighScores}
+          onClear={handleClearHighScores}
         />
       </div>
     );
@@ -590,6 +615,7 @@ export default function App() {
           onPractiseTrickyWords={requestTrickyWords}
           newHighScoreRank={newHighScore?.rank ?? null}
           highScorePersisted={newHighScore?.persisted ?? true}
+          onHighScores={openHighScores}
         />
       )}
 

@@ -13,6 +13,25 @@ export interface HighScoresStorageResult {
   warning: string | null;
 }
 
+/** Explicit confirmed reset: remove only scores, including corrupt or unreadable records. */
+export function clearHighScoresStorage(
+  storage: BrowserStorage | null = browserStorage()
+): HighScoresStorageResult {
+  const list = emptyHighScores();
+  try {
+    if (!storage) throw new Error("Storage unavailable");
+    storage.removeItem(HIGH_SCORES_STORAGE_KEY);
+    return { list, persisted: true, warning: null };
+  } catch {
+    return {
+      list,
+      persisted: false,
+      warning:
+        "High-score history could not be cleared from this browser. It is hidden for this visit only; refreshing may restore the previous high scores.",
+    };
+  }
+}
+
 export function readHighScoresStorage(
   storage: BrowserStorage | null = browserStorage()
 ): HighScoresStorageResult {

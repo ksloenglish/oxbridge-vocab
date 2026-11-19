@@ -172,3 +172,108 @@ describe("high-score completion transactions", () => {
     expect(savedIds()).toEqual(["already-saved"]);
   });
 });
+
+describe("confirmed high-score reset transactions", () => {
+  it("clears history without touching progress, mistakes or Home preferences and accepts a new score", () => {
+    const otherKeys = [
+      "kslo.oxbridge.savedExercise.v1",
+      "kslo.oxbridge.trickyWords.v1",
+      "kslo.oxbridge.setupPreference.v1",
+    ];
+    for (const key of otherKeys) values.set(key, "keep:" + key);
+    const hook = useHighScores();
+    const previous = completed("before-clear");
+    hook.recordCompleted(previous);
+    expect(hook.clearScores()).toEqual({
+      list: emptyHighScores(),
+      persisted: true,
+      warning: null,
+    });
+    expect(values.has(HIGH_SCORES_STORAGE_KEY)).toBe(false);
+    expect(hook.refresh().entries).toHaveLength(0);
+    // Clearing history does not make a previous completion eligible to record again.
+    expect(hook.recordCompleted(previous).rank).toBeNull();
+    expect(values.has(HIGH_SCORES_STORAGE_KEY)).toBe(false);
+    expect(hook.recordCompleted(completed("after-clear"))).toEqual({
+      rank: 1,
+      persisted: true,
+    });
+    expect(savedIds()).toEqual(["after-clear"]);
+    for (const key of otherKeys) expect(values.get(key)).toBe("keep:" + key);
+    expect(values.get("other.app.key")).toBe("preserve");
+  });
+
+  it("keeps a failed clear visit-only, without restoring or overwriting other-tab history", () => {
+    const previous = createHighScore(completed("stored-before-clear"))!;
+    const original = JSON.stringify(addHighScore(emptyHighScores(), previous));
+    values.set(HIGH_SCORES_STORAGE_KEY, original);
+    const hook = useHighScores();
+    vi.spyOn(window.localStorage, "removeItem").mockImplementation(() => {
+      throw new Error("blocked removal");
+    });
+    const result = hook.clearScores();
+    expect(result.persisted).toBe(false);
+    expect(result.warning).toContain("refreshing");
+    expect(hook.refresh().entries).toEqual([]);
+    expect(values.get(HIGH_SCORES_STORAGE_KEY)).toBe(original);
+    const other = createHighScore(completed("other-tab-after-failure"))!;
+    values.set(
+      HIGH_SCORES_STORAGE_KEY,
+      JSON.stringify(addHighScore(emptyHighScores(), other))
+    );
+    expect(hook.recordCompleted(completed("visit-only-new")).persisted).toBe(
+      false
+    );
+    expect(savedIds()).toEqual(["other-tab-after-failure"]);
+    expect(hook.refresh().entries.map(entry => entry.sessionId)).toEqual([
+      "visit-only-new",
+    ]);
+    expect(writes).toBe(0);
+  });
+
+  it("a successful explicit clear can establish a fresh healthy baseline after a failed save", () => {
+    const hook = useHighScores();
+    blocked = true;
+    const failed = completed("failed-save-before-clear");
+    expect(hook.recordCompleted(failed).persisted).toBe(false);
+    blocked = false;
+    const other = createHighScore(
+      completed("other-tab-before-confirmed-reset")
+    )!;
+    values.set(
+      HIGH_SCORES_STORAGE_KEY,
+      JSON.stringify(addHighScore(emptyHighScores(), other))
+    );
+    expect(hook.clearScores().persisted).toBe(true);
+    expect(hook.refresh().entries).toEqual([]);
+    expect(values.has(HIGH_SCORES_STORAGE_KEY)).toBe(false);
+    expect(hook.recordCompleted(failed).rank).toBeNull();
+    expect(hook.recordCompleted(completed("fresh-after-reset"))).toEqual({
+      rank: 1,
+      persisted: true,
+    });
+    expect(savedIds()).toEqual(["fresh-after-reset"]);
+  });
+
+  it("reads the latest other-tab list after a healthy history removal", () => {
+    const previous = createHighScore(completed("other-tab-existing"))!;
+    values.set(
+      HIGH_SCORES_STORAGE_KEY,
+      JSON.stringify(addHighScore(emptyHighScores(), previous))
+    );
+    const hook = useHighScores();
+    // The storage-event listener invokes this same refresh path.
+    values.delete(HIGH_SCORES_STORAGE_KEY);
+    expect(hook.refresh().entries).toEqual([]);
+    const next = createHighScore(completed("other-tab-new"))!;
+    values.set(
+      HIGH_SCORES_STORAGE_KEY,
+      JSON.stringify(addHighScore(emptyHighScores(), next))
+    );
+    expect(hook.refresh().entries.map(entry => entry.sessionId)).toEqual([
+      "other-tab-new",
+    ]);
+    hook.recordCompleted(completed("our-new", 10));
+    expect(savedIds()).toEqual(["our-new", "other-tab-new"]);
+  });
+});

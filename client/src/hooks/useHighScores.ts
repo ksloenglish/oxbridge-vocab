@@ -7,6 +7,7 @@ import {
   rankForSession,
 } from "@/lib/highScores";
 import {
+  clearHighScoresStorage,
   readHighScoresStorage,
   writeHighScoresStorage,
 } from "@/lib/highScoresStorage";
@@ -24,6 +25,17 @@ export function useHighScores() {
   const listRef = useRef(initial.list);
   const memoryOnly = useRef(!initial.persisted);
   const recordedSessions = useRef(new Set<string>());
+
+  const clearScores = useCallback(() => {
+    // This explicit reset may retry removal after a failed save: it never writes stale scores.
+    const cleared = clearHighScoresStorage();
+    listRef.current = cleared.list;
+    memoryOnly.current = !cleared.persisted;
+    setList(cleared.list);
+    setWarning(cleared.warning);
+    // Retain recordedSessions so old completed sessions cannot return after a reset.
+    return cleared;
+  }, []);
 
   const refresh = useCallback(() => {
     if (memoryOnly.current) return listRef.current;
@@ -98,5 +110,5 @@ export function useHighScores() {
     };
   }, [refresh]);
 
-  return { list, warning, refresh, recordCompleted };
+  return { list, warning, refresh, recordCompleted, clearScores };
 }
