@@ -91,6 +91,7 @@ describe("approved question selection", () => {
 
     for (let run = 1; run <= 10; run += 1) {
       const exercise = buildRealFullList(collection!, run);
+      expect(exercise.highScoreEligible).toBe(true);
       expect(exercise.questions).toHaveLength(100);
       expect(new Set(exercise.questions.map((question) => question.id)).size).toBe(100);
       for (const segment of collection!.segments) {
@@ -189,6 +190,8 @@ describe("retrying a completed exercise", () => {
       expect(retry.questions.map((question) => question.options)).toEqual(
         completed.questions.map((question) => question.options),
       );
+      expect(retry.highScoreEligible).toBe(false);
+      expect(completed.highScoreEligible).toBe(true);
       expect(JSON.stringify(completed)).toBe(before);
     }
   });
@@ -316,6 +319,7 @@ describe("retrying a completed exercise", () => {
     for (const retry of [first, second, third]) {
       expect(retry.questions).toEqual(completed.questions);
       expect(retry.selection).toEqual(completed.selection);
+      expect(retry.highScoreEligible).toBe(false);
       expect(retry.score).toBe(0);
       expect(
         retry.questionProgress.every((progress) => progress.attemptedOptions.length === 0),

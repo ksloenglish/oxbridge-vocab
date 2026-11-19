@@ -75,6 +75,8 @@ export interface ExerciseSnapshot {
   schemaVersion: 2;
   /** Absent in existing saved snapshots; absence means a regular exercise. */
   kind?: "regular" | "tricky-words";
+  /** Only explicitly marked fresh exercises qualify; retries and legacy snapshots do not. */
+  highScoreEligible?: boolean;
   releaseVersion: string;
   sessionId: string;
   status: "active" | "complete";

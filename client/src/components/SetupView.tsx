@@ -1,7 +1,7 @@
 /** Oxbridge Ledger: asymmetric editorial setup folio with large touch targets and dynamic availability. */
 // Oxbridge Ledger setup: portrait scholarship art on wide folios, established landscape crop on compact screens.
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Play, RotateCcw, Trash2 } from "lucide-react";
+import { ArrowRight, Play, RotateCcw, Trash2, Trophy } from "lucide-react";
 import { BrandLockup } from "@/components/BrandLockup";
 import { APP_VERSION } from "@/lib/appVersion";
 import { getRangeLabel, normaliseSegmentMode } from "@/lib/exercise";
@@ -25,6 +25,7 @@ interface SetupViewProps {
   trickyWordsCount: number;
   storageWarning: string | null;
   onPractiseTrickyWords: () => void;
+  onHighScores: () => void;
   onResume: () => void;
   onDiscardSavedExercise: () => void;
   onStart: (collectionId: string, mode: SegmentMode, count: number) => void;
@@ -39,6 +40,7 @@ export function SetupView({
   trickyWordsCount,
   storageWarning,
   onPractiseTrickyWords,
+  onHighScores,
   onResume,
   onDiscardSavedExercise,
   onStart,
@@ -46,11 +48,11 @@ export function SetupView({
   // The remembered folio is restored once on mount, then every change is stored so it
   // survives finishing an exercise, Play again, or a later visit.
   const [initial] = useState(() =>
-    resolveSetupPreference(catalogue, readSetupPreference()),
+    resolveSetupPreference(catalogue, readSetupPreference())
   );
   const [collectionId, setCollectionId] = useState(initial.collectionId);
   const collection =
-    catalogue.collections.find((item) => item.id === collectionId) ??
+    catalogue.collections.find(item => item.id === collectionId) ??
     catalogue.collections[0];
   const [mode, setMode] = useState<SegmentMode>(initial.mode);
   const [count, setCount] = useState(initial.count);
@@ -66,31 +68,36 @@ export function SetupView({
 
   const maximum = useMemo(() => {
     if (effectiveMode === "full") {
-      return Math.min(...collection.segments.map((item) => item.availableCount)) * 2;
+      return (
+        Math.min(...collection.segments.map(item => item.availableCount)) * 2
+      );
     }
     return (
-      collection.segments.find((item) => item.id === effectiveMode)?.availableCount ?? 0
+      collection.segments.find(item => item.id === effectiveMode)
+        ?.availableCount ?? 0
     );
   }, [collection, effectiveMode]);
 
   useEffect(() => {
     if (count > maximum) {
-      setCount([...QUESTION_COUNTS].reverse().find((item) => item <= maximum) ?? 10);
+      setCount(
+        [...QUESTION_COUNTS].reverse().find(item => item <= maximum) ?? 10
+      );
     }
   }, [count, maximum]);
 
   const combinedAvailable = collection.segments.reduce(
     (total, segment) => total + segment.availableCount,
-    0,
+    0
   );
   const formattedQuestionTotal = new Intl.NumberFormat("en-GB").format(
-    catalogue.releasedQuestionCount,
+    catalogue.releasedQuestionCount
   );
   const selectionLabel =
     effectiveMode === "full"
       ? "Full list"
-      : collection.segments.find((item) => item.id === effectiveMode)?.label ??
-        collection.segments[0].label;
+      : (collection.segments.find(item => item.id === effectiveMode)?.label ??
+        collection.segments[0].label);
 
   return (
     <main className="setup-page">
@@ -101,10 +108,13 @@ export function SetupView({
             <p className="eyebrow">ESSENTIAL ENGLISH VOCABULARY</p>
             <h1 id="setup-title">Learn the words that matter most.</h1>
             <p className="brand-panel__description">
-              Practise the Oxford 3000, Oxford 5000, and C2 Proficiency word lists
-              through precise sentence-completion challenges.
+              Practise the Oxford 3000, Oxford 5000, and C2 Proficiency word
+              lists through precise sentence-completion challenges.
             </p>
-            <div className="brand-panel__catalogue-total" aria-label={`${formattedQuestionTotal} questions available`}>
+            <div
+              className="brand-panel__catalogue-total"
+              aria-label={`${formattedQuestionTotal} questions available`}
+            >
               <span>Current question bank</span>
               <div className="brand-panel__catalogue-total-row">
                 <strong>{formattedQuestionTotal}</strong>
@@ -126,7 +136,11 @@ export function SetupView({
                 <strong>{savedSummary}</strong>
               </div>
               <div className="resume-banner__actions">
-                <button className="button button--resume" type="button" onClick={onResume}>
+                <button
+                  className="button button--resume"
+                  type="button"
+                  onClick={onResume}
+                >
                   <RotateCcw size={18} aria-hidden="true" />
                   Resume exercise
                 </button>
@@ -156,13 +170,32 @@ export function SetupView({
             </div>
           )}
 
+          <a
+            href="#high-scores"
+            className="home-high-scores-link"
+            onClick={event => {
+              event.preventDefault();
+              onHighScores();
+            }}
+          >
+            <Trophy size={18} aria-hidden="true" />
+            <span>
+              High scores <small>Your local top 10</small>
+            </span>
+            <ArrowRight size={18} aria-hidden="true" />
+          </a>
+
           {trickyWordsCount > 0 && (
-            <section className="tricky-words-card" aria-labelledby="tricky-words-title">
+            <section
+              className="tricky-words-card"
+              aria-labelledby="tricky-words-title"
+            >
               <div className="tricky-words-card__copy">
                 <div className="tricky-words-card__heading">
                   <h2 id="tricky-words-title">Retry incorrect questions</h2>
                   <span className="tricky-words-card__count">
-                    {trickyWordsCount} {trickyWordsCount === 1 ? "question" : "questions"}
+                    {trickyWordsCount}{" "}
+                    {trickyWordsCount === 1 ? "question" : "questions"}
                   </span>
                 </div>
                 <p id="tricky-words-description">
@@ -179,7 +212,8 @@ export function SetupView({
                 onClick={onPractiseTrickyWords}
                 aria-describedby="tricky-words-description tricky-words-storage"
               >
-                Retry {trickyWordsCount} {trickyWordsCount === 1 ? "question" : "questions"}
+                Retry {trickyWordsCount}{" "}
+                {trickyWordsCount === 1 ? "question" : "questions"}
                 <ArrowRight size={18} aria-hidden="true" />
               </button>
             </section>
@@ -191,7 +225,7 @@ export function SetupView({
               Vocabulary collection
             </legend>
             <div className="collection-grid">
-              {catalogue.collections.map((item) => (
+              {catalogue.collections.map(item => (
                 <label
                   className={`collection-card${item.id === collectionId ? " is-selected" : ""}`}
                   key={item.id}
@@ -203,13 +237,17 @@ export function SetupView({
                     checked={item.id === collectionId}
                     onChange={() => {
                       setCollectionId(item.id);
-                      setMode((current) =>
-                        current === "full" ? "full" : item.segments[0].id,
+                      setMode(current =>
+                        current === "full" ? "full" : item.segments[0].id
                       );
                     }}
                   />
-                  <span className="collection-card__level">{item.cefrLevel}</span>
-                  <strong>{item.label.replace(` ${item.cefrLevel}`, "")}</strong>
+                  <span className="collection-card__level">
+                    {item.cefrLevel}
+                  </span>
+                  <strong>
+                    {item.label.replace(` ${item.cefrLevel}`, "")}
+                  </strong>
                 </label>
               ))}
             </div>
@@ -221,7 +259,7 @@ export function SetupView({
               Word range
             </legend>
             <div className="segment-grid">
-              {collection.segments.map((segment) => (
+              {collection.segments.map(segment => (
                 <label
                   className={`segment-card${effectiveMode === segment.id ? " is-selected" : ""}`}
                   key={segment.id}
@@ -235,12 +273,17 @@ export function SetupView({
                   />
                   <strong>{segment.label}</strong>
                   <span>
-                    {segment.rangeStart}–{segment.rangeEnd} · {segment.firstHeadword} – {segment.lastHeadword}
+                    {segment.rangeStart}–{segment.rangeEnd} ·{" "}
+                    {segment.firstHeadword} – {segment.lastHeadword}
                   </span>
-                  <small className="range-count">{segment.availableCount} questions available</small>
+                  <small className="range-count">
+                    {segment.availableCount} questions available
+                  </small>
                 </label>
               ))}
-              <label className={`segment-card${effectiveMode === "full" ? " is-selected" : ""}`}>
+              <label
+                className={`segment-card${effectiveMode === "full" ? " is-selected" : ""}`}
+              >
                 <input
                   type="radio"
                   name="segment"
@@ -250,9 +293,12 @@ export function SetupView({
                 />
                 <strong>Full list</strong>
                 <span>
-                  {collection.segments[0].rangeStart}–{collection.segments[1].rangeEnd} · both halves
+                  {collection.segments[0].rangeStart}–
+                  {collection.segments[1].rangeEnd} · both halves
                 </span>
-                <small className="range-count">{combinedAvailable} questions available</small>
+                <small className="range-count">
+                  {combinedAvailable} questions available
+                </small>
               </label>
             </div>
           </fieldset>
@@ -263,7 +309,7 @@ export function SetupView({
               Number of questions
             </legend>
             <div className="count-row">
-              {QUESTION_COUNTS.map((value) => (
+              {QUESTION_COUNTS.map(value => (
                 <label
                   className={`count-chip${count === value ? " is-selected" : ""}${
                     value > maximum ? " is-disabled" : ""
@@ -285,7 +331,10 @@ export function SetupView({
           </fieldset>
 
           <div className="selection-summary">
-            <div className="summary-badge" aria-label={`CEFR level ${collection.cefrLevel}`}>
+            <div
+              className="summary-badge"
+              aria-label={`CEFR level ${collection.cefrLevel}`}
+            >
               {collection.cefrLevel}
             </div>
             <div>
@@ -318,7 +367,9 @@ export function SetupView({
 
       <footer className="site-footer">
         <span>Version {APP_VERSION}</span>
-        <span>© {new Date().getFullYear()} K S Lo English. All Rights Reserved.</span>
+        <span>
+          © {new Date().getFullYear()} K S Lo English. All Rights Reserved.
+        </span>
       </footer>
     </main>
   );

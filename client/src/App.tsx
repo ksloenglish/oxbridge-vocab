@@ -5,21 +5,20 @@ import { AlertTriangle, LoaderCircle } from "lucide-react";
 import { SetupView } from "@/components/SetupView";
 import { QuestionView } from "@/components/QuestionView";
 import { ResultsView } from "@/components/ResultsView";
+import { HighScoresView } from "@/components/HighScoresView";
 import { useActiveTimer } from "@/hooks/useActiveTimer";
 import { useTrickyWords } from "@/hooks/useTrickyWords";
+import { useHighScores } from "@/hooks/useHighScores";
+import type { HighScoreOutcome } from "@/hooks/useHighScores";
 import { loadCatalogue, loadSegment } from "@/lib/data";
 import { applyAttempt, buildExercise, retryExercise } from "@/lib/exercise";
 import { buildTrickyWordsExercise } from "@/lib/trickyWords";
 import { browserStorage } from "@/lib/trickyWordsStorage";
-import type {
-  ExerciseSnapshot,
-  ReleaseCatalogue,
-  SegmentMode,
-} from "@/types";
+import type { ExerciseSnapshot, ReleaseCatalogue, SegmentMode } from "@/types";
 
 const STORAGE_KEY = "kslo.oxbridge.savedExercise.v1";
 
-type Screen = "home" | "exercise" | "results";
+type Screen = "home" | "exercise" | "results" | "high-scores";
 type ConfirmMode = "discard" | "discard-saved" | "quit" | null;
 type PreviewMode = "question" | "results" | null;
 type PendingStart =
@@ -47,21 +46,26 @@ function readSavedExercise(): ExerciseSnapshot | null {
     const saved = JSON.parse(raw) as ExerciseSnapshot;
     if (
       saved.schemaVersion !== 2 ||
-      (saved.kind !== undefined && saved.kind !== "regular" && saved.kind !== "tricky-words") ||
+      (saved.kind !== undefined &&
+        saved.kind !== "regular" &&
+        saved.kind !== "tricky-words") ||
+      (saved.highScoreEligible !== undefined &&
+        typeof saved.highScoreEligible !== "boolean") ||
       saved.status !== "active" ||
       !Array.isArray(saved.questions) ||
       saved.questions.length === 0 ||
       !Array.isArray(saved.questionProgress) ||
       saved.questionProgress.length !== saved.questions.length ||
       !Number.isInteger(saved.currentIndex) ||
-      saved.currentIndex < 0 || saved.currentIndex >= saved.questions.length ||
+      saved.currentIndex < 0 ||
+      saved.currentIndex >= saved.questions.length ||
       !saved.questions.every(
-        (question) =>
+        question =>
           question.optionDefinitions &&
           Array.isArray(question.options) &&
           question.options.every(
-            (option) => typeof question.optionDefinitions[option] === "string",
-          ),
+            option => typeof question.optionDefinitions[option] === "string"
+          )
       )
     ) {
       clearSavedExercise();
@@ -78,18 +82,25 @@ export default function App() {
   const previewMode = useMemo(() => getPreviewMode(), []);
   const [catalogue, setCatalogue] = useState<ReleaseCatalogue | null>(null);
   const [catalogueError, setCatalogueError] = useState<string | null>(null);
-  const [screen, setScreen] = useState<Screen>("home");
+  const [screen, setScreen] = useState<Screen>(() =>
+    window.location.hash === "#high-scores" ? "high-scores" : "home"
+  );
   const [exercise, setExercise] = useState<ExerciseSnapshot | null>(null);
-  const [savedExercise, setSavedExercise] = useState<ExerciseSnapshot | null>(() =>
-    readSavedExercise(),
+  const [savedExercise, setSavedExercise] = useState<ExerciseSnapshot | null>(
+    () => readSavedExercise()
   );
   const exerciseRef = useRef(exercise);
   exerciseRef.current = exercise;
   const trickyWords = useTrickyWords();
+  const highScores = useHighScores();
+  const [newHighScore, setNewHighScore] = useState<HighScoreOutcome | null>(
+    null
+  );
   const [snapshotWarning, setSnapshotWarning] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [confirmMode, setConfirmMode] = useState<ConfirmMode>(null);
   const [pendingStart, setPendingStart] = useState<PendingStart | null>(null);
+  const startRequest = useRef(0);
 
   const saveSnapshot = useCallback((snapshot: ExerciseSnapshot) => {
     try {
@@ -98,7 +109,9 @@ export default function App() {
       storage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
       setSnapshotWarning(null);
     } catch {
-      setSnapshotWarning("Exercise progress could not be saved in this browser. Refreshing may lose this session.");
+      setSnapshotWarning(
+        "Exercise progress could not be saved in this browser. Refreshing may lose this session."
+      );
     }
   }, []);
 
@@ -107,24 +120,28 @@ export default function App() {
       .then(setCatalogue)
       .catch((error: unknown) => {
         setCatalogueError(
-          error instanceof Error ? error.message : "The release catalogue could not be loaded.",
+          error instanceof Error
+            ? error.message
+            : "The release catalogue could not be loaded."
         );
       });
   }, []);
 
   useEffect(() => {
     if (!catalogue || !previewMode || exercise) return;
+    const request = startRequest.current;
     const collection = catalogue.collections[0];
     const segment = collection.segments[0];
     loadSegment(segment.dataFile, catalogue.releaseVersion)
-      .then((release) => {
+      .then(release => {
+        if (request !== startRequest.current) return;
         const preview = buildExercise(
           collection,
           segment.id,
           10,
           { [segment.id]: release.questions },
           catalogue.releaseVersion,
-          () => 0.314159,
+          () => 0.314159
         );
         if (previewMode === "question") {
           preview.currentIndex = 2;
@@ -142,7 +159,7 @@ export default function App() {
             firstAttemptCorrect: true,
           };
           const wrongOption = preview.questions[2].options.find(
-            (option) => option !== preview.questions[2].answer,
+            option => option !== preview.questions[2].answer
           );
           preview.questionProgress[2] = {
             attemptedOptions: wrongOption ? [wrongOption] : [],
@@ -158,39 +175,98 @@ export default function App() {
         preview.status = "complete";
         preview.score = 8;
         preview.elapsedMs = 268_350;
-        preview.questionProgress = preview.questionProgress.map((progress, index) => ({
-          ...progress,
-          attemptedOptions: [preview.questions[index].answer],
-          lastSelectedOption: preview.questions[index].answer,
-          resolved: true,
-          firstAttemptCorrect: index < 8,
-        }));
+        preview.questionProgress = preview.questionProgress.map(
+          (progress, index) => ({
+            ...progress,
+            attemptedOptions: [preview.questions[index].answer],
+            lastSelectedOption: preview.questions[index].answer,
+            resolved: true,
+            firstAttemptCorrect: index < 8,
+          })
+        );
         setExercise(preview);
         setScreen("results");
       })
       .catch((error: unknown) => {
+        if (request !== startRequest.current) return;
         setCatalogueError(
-          error instanceof Error ? error.message : "The preview data could not be loaded.",
+          error instanceof Error
+            ? error.message
+            : "The preview data could not be loaded."
         );
       });
   }, [catalogue, exercise, previewMode]);
 
   const persistElapsed = useCallback(
     (elapsedMs: number) => {
-      setExercise((current) => {
-        if (!current || current.status !== "active" || previewMode) return current;
+      setExercise(current => {
+        if (!current || current.status !== "active" || previewMode)
+          return current;
         return { ...current, elapsedMs, savedAtUtc: new Date().toISOString() };
       });
     },
-    [previewMode],
+    [previewMode]
   );
 
   const timer = useActiveTimer(
     screen === "exercise" && exercise?.status === "active",
     exercise?.elapsedMs ?? 0,
     persistElapsed,
-    exercise?.sessionId ?? null,
+    exercise?.sessionId ?? null
   );
+
+  useEffect(() => {
+    const onPageNavigation = () => {
+      if (window.location.hash === "#high-scores") {
+        startRequest.current += 1;
+        setBusy(false);
+        const current = exerciseRef.current;
+        if (current?.status === "active" && !previewMode) {
+          const paused = { ...current, elapsedMs: timer.commit() };
+          exerciseRef.current = paused;
+          setExercise(paused);
+          setSavedExercise(paused);
+          saveSnapshot(paused);
+        }
+        highScores.refresh();
+        setConfirmMode(null);
+        setPendingStart(null);
+        setScreen("high-scores");
+      } else {
+        setScreen(current => (current === "high-scores" ? "home" : current));
+      }
+      window.scrollTo({ top: 0 });
+    };
+    window.addEventListener("hashchange", onPageNavigation);
+    window.addEventListener("popstate", onPageNavigation);
+    return () => {
+      window.removeEventListener("hashchange", onPageNavigation);
+      window.removeEventListener("popstate", onPageNavigation);
+    };
+  }, [timer.commit, highScores.refresh, saveSnapshot, previewMode]);
+
+  const openHighScores = () => {
+    startRequest.current += 1;
+    setBusy(false);
+    highScores.refresh();
+    window.history.pushState(
+      null,
+      "",
+      `${window.location.pathname}${window.location.search}#high-scores`
+    );
+    setScreen("high-scores");
+    window.scrollTo({ top: 0 });
+  };
+
+  const closeHighScores = () => {
+    window.history.pushState(
+      null,
+      "",
+      `${window.location.pathname}${window.location.search}`
+    );
+    setScreen("home");
+    window.scrollTo({ top: 0 });
+  };
 
   useEffect(() => {
     if (
@@ -209,48 +285,60 @@ export default function App() {
   const startExercise = useCallback(
     async (collectionId: string, mode: SegmentMode, count: number) => {
       if (!catalogue) return;
-      const collection = catalogue.collections.find((item) => item.id === collectionId);
+      const collection = catalogue.collections.find(
+        item => item.id === collectionId
+      );
       if (!collection) return;
+      const request = ++startRequest.current;
       setBusy(true);
       setCatalogueError(null);
       try {
         const targetSegments =
           mode === "full"
             ? collection.segments
-            : collection.segments.filter((segment) => segment.id === mode);
+            : collection.segments.filter(segment => segment.id === mode);
         const loaded = await Promise.all(
-          targetSegments.map((segment) =>
-            loadSegment(segment.dataFile, catalogue.releaseVersion),
-          ),
+          targetSegments.map(segment =>
+            loadSegment(segment.dataFile, catalogue.releaseVersion)
+          )
         );
+        if (request !== startRequest.current) return;
         const questionsBySegment = Object.fromEntries(
-          loaded.map((segment) => [segment.segmentId, segment.questions]),
+          loaded.map(segment => [segment.segmentId, segment.questions])
         );
         const created = buildExercise(
           collection,
           mode,
           count,
           questionsBySegment,
-          catalogue.releaseVersion,
+          catalogue.releaseVersion
         );
+        setNewHighScore(null);
         setExercise(created);
         setSavedExercise(created);
         saveSnapshot(created);
         setScreen("exercise");
         window.scrollTo({ top: 0 });
       } catch (error) {
+        if (request !== startRequest.current) return;
         setCatalogueError(
-          error instanceof Error ? error.message : "The exercise could not be prepared.",
+          error instanceof Error
+            ? error.message
+            : "The exercise could not be prepared."
         );
         setScreen("home");
       } finally {
-        setBusy(false);
+        if (request === startRequest.current) setBusy(false);
       }
     },
-    [catalogue, saveSnapshot],
+    [catalogue, saveSnapshot]
   );
 
-  const requestStart = (collectionId: string, mode: SegmentMode, count: number) => {
+  const requestStart = (
+    collectionId: string,
+    mode: SegmentMode,
+    count: number
+  ) => {
     if (savedExercise) {
       setPendingStart({ kind: "regular", collectionId, mode, count });
       setConfirmMode("discard");
@@ -266,6 +354,7 @@ export default function App() {
       return;
     }
     const created = buildTrickyWordsExercise(current);
+    setNewHighScore(null);
     setExercise(created);
     setSavedExercise(created);
     saveSnapshot(created);
@@ -282,40 +371,73 @@ export default function App() {
     startTrickyWords();
   };
 
-  const handleSelect = useCallback((option: string) => {
-    const current = exerciseRef.current;
-    if (!current || current.status !== "active" || screen !== "exercise" || confirmMode) return;
-    const question = current.questions[current.currentIndex];
-    if (!question.options.includes(option)) return;
-    const previousProgress = current.questionProgress[current.currentIndex];
-    const result = applyAttempt(question.answer, previousProgress, current.score, option);
-    if (result.progress === previousProgress) return;
-    const questionProgress = [...current.questionProgress];
-    questionProgress[current.currentIndex] = result.progress;
-    const updated = {
-      ...current,
-      questionProgress,
-      score: result.score,
-      savedAtUtc: new Date().toISOString(),
-    };
-    // Update once per first answer, before returning control or allowing Quit/refresh.
-    // The immediate ref also makes rapid duplicate clicks harmless before a render.
-    exerciseRef.current = updated;
-    if (!previewMode && previousProgress.attemptedOptions.length === 0) {
-      trickyWords.recordFirstAnswer(updated, current.currentIndex);
-    }
-    setExercise(updated);
-    if (!previewMode) saveSnapshot(updated);
-  }, [previewMode, trickyWords.recordFirstAnswer, saveSnapshot, screen, confirmMode]);
+  const handleSelect = useCallback(
+    (option: string) => {
+      const current = exerciseRef.current;
+      if (
+        !current ||
+        current.status !== "active" ||
+        screen !== "exercise" ||
+        confirmMode
+      )
+        return;
+      const question = current.questions[current.currentIndex];
+      if (!question.options.includes(option)) return;
+      const previousProgress = current.questionProgress[current.currentIndex];
+      const result = applyAttempt(
+        question.answer,
+        previousProgress,
+        current.score,
+        option
+      );
+      if (result.progress === previousProgress) return;
+      const questionProgress = [...current.questionProgress];
+      questionProgress[current.currentIndex] = result.progress;
+      const updated = {
+        ...current,
+        questionProgress,
+        score: result.score,
+        savedAtUtc: new Date().toISOString(),
+      };
+      // Update once per first answer, before returning control or allowing Quit/refresh.
+      // The immediate ref also makes rapid duplicate clicks harmless before a render.
+      exerciseRef.current = updated;
+      if (!previewMode && previousProgress.attemptedOptions.length === 0) {
+        trickyWords.recordFirstAnswer(updated, current.currentIndex);
+      }
+      setExercise(updated);
+      if (!previewMode) saveSnapshot(updated);
+    },
+    [
+      previewMode,
+      trickyWords.recordFirstAnswer,
+      saveSnapshot,
+      screen,
+      confirmMode,
+    ]
+  );
 
   const handleNext = () => {
     const current = exerciseRef.current;
-    if (!current || current.status !== "active" ||
-      !current.questionProgress[current.currentIndex].resolved) return;
+    if (
+      !current ||
+      current.status !== "active" ||
+      screen !== "exercise" ||
+      confirmMode ||
+      !current.questionProgress[current.currentIndex].resolved
+    )
+      return;
     if (current.currentIndex === current.questions.length - 1) {
       const finalElapsed = timer.commit();
-      const completed: ExerciseSnapshot = { ...current, status: "complete", elapsedMs: finalElapsed };
+      const completed: ExerciseSnapshot = {
+        ...current,
+        status: "complete",
+        elapsedMs: finalElapsed,
+      };
       exerciseRef.current = completed;
+      setNewHighScore(
+        previewMode ? null : highScores.recordCompleted(completed)
+      );
       setExercise(completed);
       clearSavedExercise();
       setSavedExercise(null);
@@ -331,6 +453,7 @@ export default function App() {
 
   const handleResume = () => {
     if (!savedExercise) return;
+    setNewHighScore(null);
     setExercise(savedExercise);
     setScreen("exercise");
     window.scrollTo({ top: 0 });
@@ -353,7 +476,12 @@ export default function App() {
       setSavedExercise(null);
       setExercise(null);
       if (pendingStart.kind === "tricky-words") startTrickyWords();
-      else void startExercise(pendingStart.collectionId, pendingStart.mode, pendingStart.count);
+      else
+        void startExercise(
+          pendingStart.collectionId,
+          pendingStart.mode,
+          pendingStart.count
+        );
       setPendingStart(null);
     }
     setConfirmMode(null);
@@ -362,6 +490,7 @@ export default function App() {
   const handleRetry = () => {
     if (!exercise || exercise.status !== "complete") return;
     const restarted = retryExercise(exercise);
+    setNewHighScore(null);
     saveSnapshot(restarted);
     setSavedExercise(restarted);
     setExercise(restarted);
@@ -373,6 +502,7 @@ export default function App() {
     clearSavedExercise();
     setSavedExercise(null);
     setExercise(null);
+    setNewHighScore(null);
     setScreen("home");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -381,14 +511,30 @@ export default function App() {
     if (!savedExercise) return undefined;
     return `${savedExercise.kind === "tricky-words" ? "Retry incorrect questions" : savedExercise.selection.collectionLabel} · question ${Math.min(
       savedExercise.currentIndex + 1,
-      savedExercise.questions.length,
+      savedExercise.questions.length
     )} of ${savedExercise.questions.length}`;
   }, [savedExercise]);
+
+  if (screen === "high-scores") {
+    return (
+      <div className="app-shell">
+        <HighScoresView
+          entries={highScores.list.entries}
+          warning={highScores.warning}
+          onBack={closeHighScores}
+        />
+      </div>
+    );
+  }
 
   if (!catalogue) {
     return (
       <main className="loading-page" aria-live="polite">
-        <LoaderCircle className="loading-spinner" size={32} aria-hidden="true" />
+        <LoaderCircle
+          className="loading-spinner"
+          size={32}
+          aria-hidden="true"
+        />
         <strong>Opening the vocabulary folio…</strong>
         {catalogueError && <p role="alert">{catalogueError}</p>}
       </main>
@@ -397,13 +543,15 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      {screen !== "home" && (trickyWords.warning || snapshotWarning) && (
-        <div className="tricky-words-storage-warning" role="alert">
-          <strong>Browser storage notice</strong>
-          <span>{trickyWords.warning}</span>
-          <span>{snapshotWarning}</span>
-        </div>
-      )}
+      {screen !== "home" &&
+        (trickyWords.warning || snapshotWarning || highScores.warning) && (
+          <div className="tricky-words-storage-warning" role="alert">
+            <strong>Browser storage notice</strong>
+            <span>{trickyWords.warning}</span>
+            <span>{snapshotWarning}</span>
+            <span>{highScores.warning}</span>
+          </div>
+        )}
       {screen === "home" && (
         <SetupView
           catalogue={catalogue}
@@ -416,7 +564,12 @@ export default function App() {
           onStart={requestStart}
           trickyWordsCount={trickyWords.list.entries.length}
           onPractiseTrickyWords={requestTrickyWords}
-          storageWarning={trickyWords.warning ?? snapshotWarning}
+          onHighScores={openHighScores}
+          storageWarning={
+            [trickyWords.warning, snapshotWarning, highScores.warning]
+              .filter(Boolean)
+              .join(" ") || null
+          }
         />
       )}
       {screen === "exercise" && exercise && (
@@ -435,6 +588,8 @@ export default function App() {
           onPlayAgain={handlePlayAgain}
           trickyWordsRemaining={trickyWords.list.entries.length}
           onPractiseTrickyWords={requestTrickyWords}
+          newHighScoreRank={newHighScore?.rank ?? null}
+          highScorePersisted={newHighScore?.persisted ?? true}
         />
       )}
 
@@ -477,11 +632,19 @@ export default function App() {
                   setPendingStart(null);
                 }}
               >
-                {confirmMode === "discard-saved" ? "Keep saved exercise" : "Keep current exercise"}
+                {confirmMode === "discard-saved"
+                  ? "Keep saved exercise"
+                  : "Keep current exercise"}
               </button>
-              <button className="button button--danger" type="button" onClick={handleConfirm}>
+              <button
+                className="button button--danger"
+                type="button"
+                onClick={handleConfirm}
+              >
                 {confirmMode === "quit"
-                  ? exercise?.kind === "tricky-words" ? "Quit retry" : "Quit and discard"
+                  ? exercise?.kind === "tricky-words"
+                    ? "Quit retry"
+                    : "Quit and discard"
                   : confirmMode === "discard-saved"
                     ? "Discard saved exercise"
                     : "Discard and start"}

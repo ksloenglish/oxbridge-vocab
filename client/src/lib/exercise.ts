@@ -101,6 +101,7 @@ export function buildExercise(
 
   return {
     schemaVersion: 2,
+    highScoreEligible: true,
     releaseVersion,
     sessionId: crypto.randomUUID(),
     status: "active",
@@ -130,6 +131,7 @@ export function retryExercise(completed: ExerciseSnapshot): ExerciseSnapshot {
 
   return {
     ...structuredClone(completed),
+    highScoreEligible: false,
     sessionId: crypto.randomUUID(),
     status: "active",
     questionProgress: completed.questions.map(() => ({

@@ -1,7 +1,16 @@
 /** Oxbridge Ledger: rewarding typographic results folio with a deterministic editorial celebration motif. */
 // Oxbridge Ledger Results: retain the two-column review folio; use small scholar-blue/saffron source labels beside headwords.
 import { useEffect, useState } from "react";
-import { ArrowRight, Check, ClipboardCopy, Clock3, RotateCcw, Target, TriangleAlert } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  ClipboardCopy,
+  Clock3,
+  RotateCcw,
+  Target,
+  TriangleAlert,
+  Trophy,
+} from "lucide-react";
 import { BrandLockup } from "@/components/BrandLockup";
 import { APP_VERSION } from "@/lib/appVersion";
 import { formatActiveTime, getPerformanceRemark } from "@/lib/exercise";
@@ -16,12 +25,16 @@ export function ResultsView({
   onPlayAgain,
   trickyWordsRemaining,
   onPractiseTrickyWords,
+  newHighScoreRank,
+  highScorePersisted,
 }: {
   exercise: ExerciseSnapshot;
   onRetry: () => void;
   onPlayAgain: () => void;
   trickyWordsRemaining: number;
   onPractiseTrickyWords: () => void;
+  newHighScoreRank: number | null;
+  highScorePersisted: boolean;
 }) {
   const total = exercise.questions.length;
   const isTrickyWordPractice = exercise.kind === "tricky-words";
@@ -64,16 +77,22 @@ export function ResultsView({
         )}
         <div className="results-intro">
           <p className="eyebrow">
-            {isTrickyWordPractice ? "Incorrect-question retry complete" : "Exercise complete"}
+            {isTrickyWordPractice
+              ? "Incorrect-question retry complete"
+              : "Exercise complete"}
           </p>
           <h1>{getPerformanceRemark(accuracy)}</h1>
           <p>
-            {exercise.selection.collectionLabel}: {exercise.selection.segmentLabel}
+            {exercise.selection.collectionLabel}:{" "}
+            {exercise.selection.segmentLabel}
             <br />
             <span>{exercise.selection.rangeLabel}</span>
           </p>
         </div>
-        <div className="score-pullquote" aria-label={`Final score ${exercise.score} out of ${total}`}>
+        <div
+          className="score-pullquote"
+          aria-label={`Final score ${exercise.score} out of ${total}`}
+        >
           <span>Final score</span>
           <strong>{exercise.score}</strong>
           <small>/ {total}</small>
@@ -108,16 +127,47 @@ export function ResultsView({
         </div>
       </section>
 
+      {!isTrickyWordPractice &&
+        exercise.highScoreEligible === true &&
+        newHighScoreRank !== null && (
+          <aside
+            className="new-high-score-notice"
+            role="status"
+            aria-live="polite"
+          >
+            <Trophy size={21} aria-hidden="true" />
+            <div>
+              <h2>
+                {newHighScoreRank === 1
+                  ? "New personal best!"
+                  : "New high score!"}
+              </h2>
+              <p>
+                <strong>No. {newHighScoreRank} in this browser.</strong>{" "}
+                {highScorePersisted
+                  ? "Saved to your local top 10."
+                  : "Top-10 result for this visit only; it could not be saved."}
+              </p>
+            </div>
+          </aside>
+        )}
+
       {isTrickyWordPractice && (
-        <aside className="tricky-words-summary" aria-labelledby="tricky-words-summary-title">
+        <aside
+          className="tricky-words-summary"
+          aria-labelledby="tricky-words-summary-title"
+        >
           <Check size={19} aria-hidden="true" />
           <div>
             <h2 id="tricky-words-summary-title">First-attempt progress</h2>
             <p>
               Your score counts correct first attempts only. {exercise.score}{" "}
-              {exercise.score === 1 ? "question was" : "questions were"} answered correctly
-              on the first attempt and removed from your retry list. {sessionQuestionsRemaining}{" "}
-              {sessionQuestionsRemaining === 1 ? "question still needs" : "questions still need"}{" "}
+              {exercise.score === 1 ? "question was" : "questions were"}{" "}
+              answered correctly on the first attempt and removed from your
+              retry list. {sessionQuestionsRemaining}{" "}
+              {sessionQuestionsRemaining === 1
+                ? "question still needs"
+                : "questions still need"}{" "}
               another retry from this session.
             </p>
           </div>
@@ -130,12 +180,16 @@ export function ResultsView({
             <p className="eyebrow">Review index</p>
             <h2 id="review-title">Words from this exercise</h2>
           </div>
-          <span>{total} {isTrickyWordPractice && total === 1 ? "word" : "words"}</span>
+          <span>
+            {total} {isTrickyWordPractice && total === 1 ? "word" : "words"}
+          </span>
         </div>
         <ol className="review-list">
           {exercise.questions.map((question, index) => (
             <li key={question.id}>
-              <span className="review-number">{String(index + 1).padStart(2, "0")}</span>
+              <span className="review-number">
+                {String(index + 1).padStart(2, "0")}
+              </span>
               <div>
                 <div className="review-wordline">
                   <strong>{question.headword}</strong>
@@ -162,10 +216,16 @@ export function ResultsView({
             type="button"
             onClick={isTrickyWordPractice ? onPractiseTrickyWords : onRetry}
             disabled={isTrickyWordPractice && trickyWordsRemaining === 0}
-            aria-describedby={isTrickyWordPractice ? "tricky-words-remaining-description" : "retry-description"}
+            aria-describedby={
+              isTrickyWordPractice
+                ? "tricky-words-remaining-description"
+                : "retry-description"
+            }
           >
             <RotateCcw size={19} aria-hidden="true" />
-            {isTrickyWordPractice ? "Retry remaining questions" : "Retry same exercise"}
+            {isTrickyWordPractice
+              ? "Retry remaining questions"
+              : "Retry same exercise"}
           </button>
           {isTrickyWordPractice ? (
             <span
@@ -213,7 +273,11 @@ export function ResultsView({
                 : ""}
           </span>
         </div>
-        <button className="button button--secondary button--new-exercise" type="button" onClick={onPlayAgain}>
+        <button
+          className="button button--secondary button--new-exercise"
+          type="button"
+          onClick={onPlayAgain}
+        >
           New exercise
           <ArrowRight size={20} aria-hidden="true" />
         </button>
