@@ -73,6 +73,8 @@ export interface QuestionProgress {
 
 export interface ExerciseSnapshot {
   schemaVersion: 2;
+  /** Absent in existing saved snapshots; absence means a regular exercise. */
+  kind?: "regular" | "tricky-words";
   releaseVersion: string;
   sessionId: string;
   status: "active" | "complete";

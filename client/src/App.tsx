@@ -1,13 +1,16 @@
 /** Oxbridge Ledger: single-state-machine shell joining setup, active exercise, persistence, and results. */
 // Oxbridge Ledger behaviour: protect saved local exercise progress behind explicit confirmation.
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, LoaderCircle } from "lucide-react";
 import { SetupView } from "@/components/SetupView";
 import { QuestionView } from "@/components/QuestionView";
 import { ResultsView } from "@/components/ResultsView";
 import { useActiveTimer } from "@/hooks/useActiveTimer";
+import { useTrickyWords } from "@/hooks/useTrickyWords";
 import { loadCatalogue, loadSegment } from "@/lib/data";
 import { applyAttempt, buildExercise, retryExercise } from "@/lib/exercise";
+import { buildTrickyWordsExercise } from "@/lib/trickyWords";
+import { browserStorage } from "@/lib/trickyWordsStorage";
 import type {
   ExerciseSnapshot,
   ReleaseCatalogue,
@@ -19,6 +22,17 @@ const STORAGE_KEY = "kslo.oxbridge.savedExercise.v1";
 type Screen = "home" | "exercise" | "results";
 type ConfirmMode = "discard" | "discard-saved" | "quit" | null;
 type PreviewMode = "question" | "results" | null;
+type PendingStart =
+  | { kind: "regular"; collectionId: string; mode: SegmentMode; count: number }
+  | { kind: "tricky-words" };
+
+function clearSavedExercise(): void {
+  try {
+    browserStorage()?.removeItem(STORAGE_KEY);
+  } catch {
+    // A blocked browser storage must not prevent Quit or navigation.
+  }
+}
 
 function getPreviewMode(): PreviewMode {
   if (!import.meta.env.DEV) return null;
@@ -28,29 +42,34 @@ function getPreviewMode(): PreviewMode {
 
 function readSavedExercise(): ExerciseSnapshot | null {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = browserStorage()?.getItem(STORAGE_KEY);
     if (!raw) return null;
     const saved = JSON.parse(raw) as ExerciseSnapshot;
     if (
       saved.schemaVersion !== 2 ||
+      (saved.kind !== undefined && saved.kind !== "regular" && saved.kind !== "tricky-words") ||
       saved.status !== "active" ||
       !Array.isArray(saved.questions) ||
       saved.questions.length === 0 ||
+      !Array.isArray(saved.questionProgress) ||
       saved.questionProgress.length !== saved.questions.length ||
+      !Number.isInteger(saved.currentIndex) ||
+      saved.currentIndex < 0 || saved.currentIndex >= saved.questions.length ||
       !saved.questions.every(
         (question) =>
           question.optionDefinitions &&
+          Array.isArray(question.options) &&
           question.options.every(
             (option) => typeof question.optionDefinitions[option] === "string",
           ),
       )
     ) {
-      window.localStorage.removeItem(STORAGE_KEY);
+      clearSavedExercise();
       return null;
     }
     return saved;
   } catch {
-    window.localStorage.removeItem(STORAGE_KEY);
+    clearSavedExercise();
     return null;
   }
 }
@@ -64,13 +83,24 @@ export default function App() {
   const [savedExercise, setSavedExercise] = useState<ExerciseSnapshot | null>(() =>
     readSavedExercise(),
   );
+  const exerciseRef = useRef(exercise);
+  exerciseRef.current = exercise;
+  const trickyWords = useTrickyWords();
+  const [snapshotWarning, setSnapshotWarning] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [confirmMode, setConfirmMode] = useState<ConfirmMode>(null);
-  const [pendingStart, setPendingStart] = useState<{
-    collectionId: string;
-    mode: SegmentMode;
-    count: number;
-  } | null>(null);
+  const [pendingStart, setPendingStart] = useState<PendingStart | null>(null);
+
+  const saveSnapshot = useCallback((snapshot: ExerciseSnapshot) => {
+    try {
+      const storage = browserStorage();
+      if (!storage) throw new Error("Storage unavailable");
+      storage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+      setSnapshotWarning(null);
+    } catch {
+      setSnapshotWarning("Exercise progress could not be saved in this browser. Refreshing may lose this session.");
+    }
+  }, []);
 
   useEffect(() => {
     loadCatalogue()
@@ -149,10 +179,7 @@ export default function App() {
     (elapsedMs: number) => {
       setExercise((current) => {
         if (!current || current.status !== "active" || previewMode) return current;
-        const updated = { ...current, elapsedMs, savedAtUtc: new Date().toISOString() };
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-        setSavedExercise(updated);
-        return updated;
+        return { ...current, elapsedMs, savedAtUtc: new Date().toISOString() };
       });
     },
     [previewMode],
@@ -175,9 +202,9 @@ export default function App() {
       return;
     }
     const updated = { ...exercise, savedAtUtc: new Date().toISOString() };
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    saveSnapshot(updated);
     setSavedExercise(updated);
-  }, [exercise, previewMode, screen]);
+  }, [exercise, previewMode, screen, saveSnapshot]);
 
   const startExercise = useCallback(
     async (collectionId: string, mode: SegmentMode, count: number) => {
@@ -208,7 +235,7 @@ export default function App() {
         );
         setExercise(created);
         setSavedExercise(created);
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(created));
+        saveSnapshot(created);
         setScreen("exercise");
         window.scrollTo({ top: 0 });
       } catch (error) {
@@ -220,50 +247,86 @@ export default function App() {
         setBusy(false);
       }
     },
-    [catalogue],
+    [catalogue, saveSnapshot],
   );
 
   const requestStart = (collectionId: string, mode: SegmentMode, count: number) => {
     if (savedExercise) {
-      setPendingStart({ collectionId, mode, count });
+      setPendingStart({ kind: "regular", collectionId, mode, count });
       setConfirmMode("discard");
       return;
     }
     void startExercise(collectionId, mode, count);
   };
 
+  const startTrickyWords = () => {
+    const current = trickyWords.refresh();
+    if (current.entries.length === 0) {
+      setScreen("home");
+      return;
+    }
+    const created = buildTrickyWordsExercise(current);
+    setExercise(created);
+    setSavedExercise(created);
+    saveSnapshot(created);
+    setScreen("exercise");
+    window.scrollTo({ top: 0 });
+  };
+
+  const requestTrickyWords = () => {
+    if (savedExercise) {
+      setPendingStart({ kind: "tricky-words" });
+      setConfirmMode("discard");
+      return;
+    }
+    startTrickyWords();
+  };
+
   const handleSelect = useCallback((option: string) => {
-    setExercise((current) => {
-      if (!current) return current;
-      const question = current.questions[current.currentIndex];
-      const previousProgress = current.questionProgress[current.currentIndex];
-      const result = applyAttempt(question.answer, previousProgress, current.score, option);
-      if (result.progress === previousProgress) return current;
-      const questionProgress = [...current.questionProgress];
-      questionProgress[current.currentIndex] = result.progress;
-      return {
-        ...current,
-        questionProgress,
-        score: result.score,
-        savedAtUtc: new Date().toISOString(),
-      };
-    });
-  }, []);
+    const current = exerciseRef.current;
+    if (!current || current.status !== "active" || screen !== "exercise" || confirmMode) return;
+    const question = current.questions[current.currentIndex];
+    if (!question.options.includes(option)) return;
+    const previousProgress = current.questionProgress[current.currentIndex];
+    const result = applyAttempt(question.answer, previousProgress, current.score, option);
+    if (result.progress === previousProgress) return;
+    const questionProgress = [...current.questionProgress];
+    questionProgress[current.currentIndex] = result.progress;
+    const updated = {
+      ...current,
+      questionProgress,
+      score: result.score,
+      savedAtUtc: new Date().toISOString(),
+    };
+    // Update once per first answer, before returning control or allowing Quit/refresh.
+    // The immediate ref also makes rapid duplicate clicks harmless before a render.
+    exerciseRef.current = updated;
+    if (!previewMode && previousProgress.attemptedOptions.length === 0) {
+      trickyWords.recordFirstAnswer(updated, current.currentIndex);
+    }
+    setExercise(updated);
+    if (!previewMode) saveSnapshot(updated);
+  }, [previewMode, trickyWords.recordFirstAnswer, saveSnapshot, screen, confirmMode]);
 
   const handleNext = () => {
-    setExercise((current) => {
-      if (!current) return current;
-      if (current.currentIndex === current.questions.length - 1) {
-        const finalElapsed = timer.commit();
-        window.localStorage.removeItem(STORAGE_KEY);
-        setSavedExercise(null);
-        setScreen("results");
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        return { ...current, status: "complete", elapsedMs: finalElapsed };
-      }
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      return { ...current, currentIndex: current.currentIndex + 1 };
-    });
+    const current = exerciseRef.current;
+    if (!current || current.status !== "active" ||
+      !current.questionProgress[current.currentIndex].resolved) return;
+    if (current.currentIndex === current.questions.length - 1) {
+      const finalElapsed = timer.commit();
+      const completed: ExerciseSnapshot = { ...current, status: "complete", elapsedMs: finalElapsed };
+      exerciseRef.current = completed;
+      setExercise(completed);
+      clearSavedExercise();
+      setSavedExercise(null);
+      setScreen("results");
+    } else {
+      const next = { ...current, currentIndex: current.currentIndex + 1 };
+      exerciseRef.current = next;
+      setExercise(next);
+      if (!previewMode) saveSnapshot(next);
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleResume = () => {
@@ -280,15 +343,17 @@ export default function App() {
 
   const handleConfirm = () => {
     if (confirmMode === "quit" || confirmMode === "discard-saved") {
-      window.localStorage.removeItem(STORAGE_KEY);
+      clearSavedExercise();
       setSavedExercise(null);
       setExercise(null);
       setScreen("home");
     }
     if (confirmMode === "discard" && pendingStart) {
-      window.localStorage.removeItem(STORAGE_KEY);
+      clearSavedExercise();
       setSavedExercise(null);
-      void startExercise(pendingStart.collectionId, pendingStart.mode, pendingStart.count);
+      setExercise(null);
+      if (pendingStart.kind === "tricky-words") startTrickyWords();
+      else void startExercise(pendingStart.collectionId, pendingStart.mode, pendingStart.count);
       setPendingStart(null);
     }
     setConfirmMode(null);
@@ -297,7 +362,7 @@ export default function App() {
   const handleRetry = () => {
     if (!exercise || exercise.status !== "complete") return;
     const restarted = retryExercise(exercise);
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(restarted));
+    saveSnapshot(restarted);
     setSavedExercise(restarted);
     setExercise(restarted);
     setScreen("exercise");
@@ -305,7 +370,7 @@ export default function App() {
   };
 
   const handlePlayAgain = () => {
-    window.localStorage.removeItem(STORAGE_KEY);
+    clearSavedExercise();
     setSavedExercise(null);
     setExercise(null);
     setScreen("home");
@@ -314,7 +379,7 @@ export default function App() {
 
   const savedSummary = useMemo(() => {
     if (!savedExercise) return undefined;
-    return `${savedExercise.selection.collectionLabel} · question ${Math.min(
+    return `${savedExercise.kind === "tricky-words" ? "Retry incorrect questions" : savedExercise.selection.collectionLabel} · question ${Math.min(
       savedExercise.currentIndex + 1,
       savedExercise.questions.length,
     )} of ${savedExercise.questions.length}`;
@@ -332,6 +397,13 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      {screen !== "home" && (trickyWords.warning || snapshotWarning) && (
+        <div className="tricky-words-storage-warning" role="alert">
+          <strong>Browser storage notice</strong>
+          <span>{trickyWords.warning}</span>
+          <span>{snapshotWarning}</span>
+        </div>
+      )}
       {screen === "home" && (
         <SetupView
           catalogue={catalogue}
@@ -342,6 +414,9 @@ export default function App() {
           onResume={handleResume}
           onDiscardSavedExercise={requestDiscardSavedExercise}
           onStart={requestStart}
+          trickyWordsCount={trickyWords.list.entries.length}
+          onPractiseTrickyWords={requestTrickyWords}
+          storageWarning={trickyWords.warning ?? snapshotWarning}
         />
       )}
       {screen === "exercise" && exercise && (
@@ -358,6 +433,8 @@ export default function App() {
           exercise={exercise}
           onRetry={handleRetry}
           onPlayAgain={handlePlayAgain}
+          trickyWordsRemaining={trickyWords.list.entries.length}
+          onPractiseTrickyWords={requestTrickyWords}
         />
       )}
 
@@ -383,10 +460,12 @@ export default function App() {
             </h2>
             <p id="confirm-copy">
               {confirmMode === "quit"
-                ? "Your unfinished progress will be discarded and cannot be resumed."
+                ? exercise?.kind === "tricky-words"
+                  ? "This retry session will end. Questions answered correctly on the first try stay removed; all others remain on your retry list."
+                  : "Your unfinished progress will be discarded and cannot be resumed. Incorrect questions already saved will stay on your retry list."
                 : confirmMode === "discard-saved"
-                  ? "Your unfinished progress will be removed from this device and cannot be resumed."
-                  : "Your saved unfinished exercise will be discarded before the new one begins."}
+                  ? "Your unfinished progress will be removed from this device. Your retry list will not be deleted."
+                  : "Your saved unfinished exercise will be discarded before the new one begins. Your retry list will be kept."}
             </p>
             <div className="dialog-actions">
               <button
@@ -402,7 +481,7 @@ export default function App() {
               </button>
               <button className="button button--danger" type="button" onClick={handleConfirm}>
                 {confirmMode === "quit"
-                  ? "Quit and discard"
+                  ? exercise?.kind === "tricky-words" ? "Quit retry" : "Quit and discard"
                   : confirmMode === "discard-saved"
                     ? "Discard saved exercise"
                     : "Discard and start"}

@@ -22,6 +22,9 @@ interface SetupViewProps {
   savedSummary?: string;
   busy: boolean;
   errorMessage: string | null;
+  trickyWordsCount: number;
+  storageWarning: string | null;
+  onPractiseTrickyWords: () => void;
   onResume: () => void;
   onDiscardSavedExercise: () => void;
   onStart: (collectionId: string, mode: SegmentMode, count: number) => void;
@@ -33,6 +36,9 @@ export function SetupView({
   savedSummary,
   busy,
   errorMessage,
+  trickyWordsCount,
+  storageWarning,
+  onPractiseTrickyWords,
   onResume,
   onDiscardSavedExercise,
   onStart,
@@ -141,6 +147,42 @@ export function SetupView({
               <strong>Question bank unavailable.</strong>
               <span>{errorMessage}</span>
             </div>
+          )}
+
+          {storageWarning && (
+            <div className="tricky-words-storage-warning" role="status">
+              <strong>Browser storage notice</strong>
+              <span>{storageWarning}</span>
+            </div>
+          )}
+
+          {trickyWordsCount > 0 && (
+            <section className="tricky-words-card" aria-labelledby="tricky-words-title">
+              <div className="tricky-words-card__copy">
+                <div className="tricky-words-card__heading">
+                  <h2 id="tricky-words-title">Retry incorrect questions</h2>
+                  <span className="tricky-words-card__count">
+                    {trickyWordsCount} {trickyWordsCount === 1 ? "question" : "questions"}
+                  </span>
+                </div>
+                <p id="tricky-words-description">
+                  Questions you missed on the first attempt, oldest first.
+                </p>
+                <small id="tricky-words-storage">
+                  Saved in this browser · up to 500 questions
+                </small>
+              </div>
+              <button
+                className="button tricky-words-card__action"
+                type="button"
+                disabled={busy}
+                onClick={onPractiseTrickyWords}
+                aria-describedby="tricky-words-description tricky-words-storage"
+              >
+                Retry {trickyWordsCount} {trickyWordsCount === 1 ? "question" : "questions"}
+                <ArrowRight size={18} aria-hidden="true" />
+              </button>
+            </section>
           )}
 
           <fieldset className="folio-section">

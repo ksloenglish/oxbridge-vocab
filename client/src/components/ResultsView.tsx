@@ -14,12 +14,18 @@ export function ResultsView({
   exercise,
   onRetry,
   onPlayAgain,
+  trickyWordsRemaining,
+  onPractiseTrickyWords,
 }: {
   exercise: ExerciseSnapshot;
   onRetry: () => void;
   onPlayAgain: () => void;
+  trickyWordsRemaining: number;
+  onPractiseTrickyWords: () => void;
 }) {
   const total = exercise.questions.length;
+  const isTrickyWordPractice = exercise.kind === "tricky-words";
+  const sessionQuestionsRemaining = total - exercise.score;
   const accuracy = Math.round((exercise.score / total) * 100);
   const highScore = accuracy >= 75;
   const [copyStatus, setCopyStatus] = useState<CopyStatus>("idle");
@@ -57,7 +63,9 @@ export function ResultsView({
           </div>
         )}
         <div className="results-intro">
-          <p className="eyebrow">Exercise complete</p>
+          <p className="eyebrow">
+            {isTrickyWordPractice ? "Incorrect-question retry complete" : "Exercise complete"}
+          </p>
           <h1>{getPerformanceRemark(accuracy)}</h1>
           <p>
             {exercise.selection.collectionLabel}: {exercise.selection.segmentLabel}
@@ -84,11 +92,37 @@ export function ResultsView({
           <strong>{formatActiveTime(exercise.elapsedMs)}</strong>
         </div>
         <div>
-          <span className="stat-index">CEFR</span>
-          <span>Vocabulary level</span>
-          <strong>{exercise.selection.cefrLevel}</strong>
+          {isTrickyWordPractice ? (
+            <>
+              <RotateCcw size={20} aria-hidden="true" />
+              <span>Still to retry</span>
+              <strong>{trickyWordsRemaining}</strong>
+            </>
+          ) : (
+            <>
+              <span className="stat-index">CEFR</span>
+              <span>Vocabulary level</span>
+              <strong>{exercise.selection.cefrLevel}</strong>
+            </>
+          )}
         </div>
       </section>
+
+      {isTrickyWordPractice && (
+        <aside className="tricky-words-summary" aria-labelledby="tricky-words-summary-title">
+          <Check size={19} aria-hidden="true" />
+          <div>
+            <h2 id="tricky-words-summary-title">First-attempt progress</h2>
+            <p>
+              Your score counts correct first attempts only. {exercise.score}{" "}
+              {exercise.score === 1 ? "question was" : "questions were"} answered correctly
+              on the first attempt and removed from your retry list. {sessionQuestionsRemaining}{" "}
+              {sessionQuestionsRemaining === 1 ? "question still needs" : "questions still need"}{" "}
+              another retry from this session.
+            </p>
+          </div>
+        </aside>
+      )}
 
       <section className="review-section" aria-labelledby="review-title">
         <div className="review-heading">
@@ -96,7 +130,7 @@ export function ResultsView({
             <p className="eyebrow">Review index</p>
             <h2 id="review-title">Words from this exercise</h2>
           </div>
-          <span>{total} words</span>
+          <span>{total} {isTrickyWordPractice && total === 1 ? "word" : "words"}</span>
         </div>
         <ol className="review-list">
           {exercise.questions.map((question, index) => (
@@ -126,15 +160,28 @@ export function ResultsView({
           <button
             className="button button--primary button--retry"
             type="button"
-            onClick={onRetry}
-            aria-describedby="retry-description"
+            onClick={isTrickyWordPractice ? onPractiseTrickyWords : onRetry}
+            disabled={isTrickyWordPractice && trickyWordsRemaining === 0}
+            aria-describedby={isTrickyWordPractice ? "tricky-words-remaining-description" : "retry-description"}
           >
             <RotateCcw size={19} aria-hidden="true" />
-            Retry same exercise
+            {isTrickyWordPractice ? "Retry remaining questions" : "Retry same exercise"}
           </button>
-          <span className="retry-description" id="retry-description">
-            Same {total} questions and order. Score and timer start again.
-          </span>
+          {isTrickyWordPractice ? (
+            <span
+              className="retry-description"
+              id="tricky-words-remaining-description"
+              role="status"
+            >
+              {trickyWordsRemaining === 0
+                ? "All clear — no incorrect questions left to retry."
+                : `${trickyWordsRemaining} ${trickyWordsRemaining === 1 ? "question" : "questions"} waiting, oldest first.`}
+            </span>
+          ) : (
+            <span className="retry-description" id="retry-description">
+              Same {total} questions and order. Score and timer start again.
+            </span>
+          )}
         </div>
         <div className="copy-review-action">
           <button
@@ -153,7 +200,7 @@ export function ResultsView({
             {copyStatus === "copying"
               ? "Copying…"
               : copyStatus === "success"
-                ? `Copied ${total} words`
+                ? `Copied ${total} ${isTrickyWordPractice && total === 1 ? "word" : "words"}`
                 : copyStatus === "error"
                   ? "Copy failed — try again"
                   : "Copy words and definitions"}

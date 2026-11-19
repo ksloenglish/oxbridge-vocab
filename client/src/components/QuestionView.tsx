@@ -102,7 +102,9 @@ export function QuestionView({
         <div className="question-workspace">
           <div className="question-copy">
             <p className="eyebrow">
-              {exercise.selection.collectionLabel} · {exercise.selection.segmentLabel}
+              {exercise.kind === "tricky-words"
+                ? "Incorrect questions · Oldest first"
+                : `${exercise.selection.collectionLabel} · ${exercise.selection.segmentLabel}`}
             </p>
             <h1 id="question-heading" className={sentenceSizeClass} ref={sentenceRef}>
               {beforeBlank}
