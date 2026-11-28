@@ -1,7 +1,15 @@
 /** Oxbridge Ledger: asymmetric editorial setup folio with large touch targets and dynamic availability. */
 // Oxbridge Ledger setup: portrait scholarship art on wide folios, established landscape crop on compact screens.
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Play, RotateCcw, Trash2, Trophy } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpen,
+  PenLine,
+  Play,
+  RotateCcw,
+  Trash2,
+  Trophy,
+} from "lucide-react";
 import { BrandLockup } from "@/components/BrandLockup";
 import { APP_VERSION } from "@/lib/appVersion";
 import { getRangeLabel, normaliseSegmentMode } from "@/lib/exercise";
@@ -11,6 +19,7 @@ import {
   resolveSetupPreference,
   writeSetupPreference,
 } from "@/lib/setupPreference";
+import type { SetupActivity } from "@/lib/setupPreference";
 import type { ReleaseCatalogue, SegmentMode } from "@/types";
 
 const desktopHeroArt = "/oxbridge-vocab/assets/oxbridge-scholarship-hero.webp";
@@ -29,6 +38,7 @@ interface SetupViewProps {
   onResume: () => void;
   onDiscardSavedExercise: () => void;
   onStart: (collectionId: string, mode: SegmentMode, count: number) => void;
+  onRevise: (collectionId: string, mode: SegmentMode) => void;
 }
 
 export function SetupView({
@@ -44,6 +54,7 @@ export function SetupView({
   onResume,
   onDiscardSavedExercise,
   onStart,
+  onRevise,
 }: SetupViewProps) {
   // The remembered folio is restored once on mount, then every change is stored so it
   // survives finishing an exercise, Play again, or a later visit.
@@ -56,11 +67,14 @@ export function SetupView({
     catalogue.collections[0];
   const [mode, setMode] = useState<SegmentMode>(initial.mode);
   const [count, setCount] = useState(initial.count);
+  const [activity, setActivity] = useState<SetupActivity>(
+    initial.activity ?? "exercise"
+  );
   const effectiveMode = normaliseSegmentMode(collection, mode);
 
   useEffect(() => {
-    writeSetupPreference({ collectionId, mode: effectiveMode, count });
-  }, [collectionId, effectiveMode, count]);
+    writeSetupPreference({ collectionId, mode: effectiveMode, count, activity });
+  }, [collectionId, effectiveMode, count, activity]);
 
   useEffect(() => {
     if (effectiveMode !== mode) setMode(effectiveMode);
@@ -90,6 +104,12 @@ export function SetupView({
     (total, segment) => total + segment.availableCount,
     0
   );
+  const cardCount =
+    effectiveMode === "full"
+      ? combinedAvailable
+      : (collection.segments.find(item => item.id === effectiveMode)
+          ?.availableCount ?? 0);
+  const isRevision = activity === "revision";
   const formattedQuestionTotal = new Intl.NumberFormat("en-GB").format(
     catalogue.releasedQuestionCount
   );
@@ -303,32 +323,71 @@ export function SetupView({
             </div>
           </fieldset>
 
-          <fieldset className="folio-section folio-section--count">
+          <fieldset className="folio-section folio-section--activity">
             <legend>
               <span>03</span>
-              Number of questions
+              Choose an activity
             </legend>
-            <div className="count-row">
-              {QUESTION_COUNTS.map(value => (
-                <label
-                  className={`count-chip${count === value ? " is-selected" : ""}${
-                    value > maximum ? " is-disabled" : ""
-                  }`}
-                  key={value}
-                >
-                  <input
-                    type="radio"
-                    name="count"
-                    value={value}
-                    checked={count === value}
-                    disabled={value > maximum}
-                    onChange={() => setCount(value)}
-                  />
-                  {value}
-                </label>
-              ))}
+            <div className="activity-grid">
+              <label
+                className={`activity-card${isRevision ? " is-selected" : ""}`}
+              >
+                <input
+                  type="radio"
+                  name="activity"
+                  value="revision"
+                  checked={isRevision}
+                  onChange={() => setActivity("revision")}
+                />
+                <BookOpen size={22} aria-hidden="true" />
+                <strong>Revision</strong>
+                <span>Flash cards with meanings and examples</span>
+              </label>
+              <label
+                className={`activity-card${!isRevision ? " is-selected" : ""}`}
+              >
+                <input
+                  type="radio"
+                  name="activity"
+                  value="exercise"
+                  checked={!isRevision}
+                  onChange={() => setActivity("exercise")}
+                />
+                <PenLine size={22} aria-hidden="true" />
+                <strong>Exercise</strong>
+                <span>Sentence-completion questions</span>
+              </label>
             </div>
           </fieldset>
+
+          {!isRevision && (
+            <fieldset className="folio-section folio-section--count">
+              <legend>
+                <span>04</span>
+                Number of questions
+              </legend>
+              <div className="count-row">
+                {QUESTION_COUNTS.map(value => (
+                  <label
+                    className={`count-chip${count === value ? " is-selected" : ""}${
+                      value > maximum ? " is-disabled" : ""
+                    }`}
+                    key={value}
+                  >
+                    <input
+                      type="radio"
+                      name="count"
+                      value={value}
+                      checked={count === value}
+                      disabled={value > maximum}
+                      onChange={() => setCount(value)}
+                    />
+                    {value}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          )}
 
           <div className="selection-summary">
             <div
@@ -345,23 +404,44 @@ export function SetupView({
               <small>{getRangeLabel(collection, effectiveMode)}</small>
             </div>
             <div className="summary-count">
-              <strong>{count}</strong>
-              <span>questions</span>
+              <strong>{isRevision ? cardCount : count}</strong>
+              <span>
+                {isRevision
+                  ? cardCount === 1
+                    ? "card"
+                    : "cards"
+                  : "questions"}
+              </span>
             </div>
           </div>
 
-          <button
-            className="button button--primary button--start"
-            type="button"
-            disabled={busy || Boolean(errorMessage)}
-            onClick={() => onStart(collection.id, effectiveMode, count)}
-          >
-            <span>
-              <Play size={19} fill="currentColor" aria-hidden="true" />
-              {busy ? "Preparing exercise…" : "Start exercise"}
-            </span>
-            <ArrowRight size={21} aria-hidden="true" />
-          </button>
+          {isRevision ? (
+            <button
+              className="button button--primary button--start button--revise"
+              type="button"
+              disabled={busy || cardCount === 0}
+              onClick={() => onRevise(collection.id, effectiveMode)}
+            >
+              <span>
+                <BookOpen size={19} aria-hidden="true" />
+                Open flash cards
+              </span>
+              <ArrowRight size={21} aria-hidden="true" />
+            </button>
+          ) : (
+            <button
+              className="button button--primary button--start"
+              type="button"
+              disabled={busy || Boolean(errorMessage)}
+              onClick={() => onStart(collection.id, effectiveMode, count)}
+            >
+              <span>
+                <Play size={19} fill="currentColor" aria-hidden="true" />
+                {busy ? "Preparing exercise…" : "Start exercise"}
+              </span>
+              <ArrowRight size={21} aria-hidden="true" />
+            </button>
+          )}
         </section>
       </section>
 

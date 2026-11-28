@@ -6,19 +6,47 @@ import { SetupView } from "@/components/SetupView";
 import { QuestionView } from "@/components/QuestionView";
 import { ResultsView } from "@/components/ResultsView";
 import { HighScoresView } from "@/components/HighScoresView";
+import { FlashcardsView } from "@/components/FlashcardsView";
 import { useActiveTimer } from "@/hooks/useActiveTimer";
 import { useTrickyWords } from "@/hooks/useTrickyWords";
 import { useHighScores } from "@/hooks/useHighScores";
 import type { HighScoreOutcome } from "@/hooks/useHighScores";
 import { loadCatalogue, loadSegment } from "@/lib/data";
-import { applyAttempt, buildExercise, retryExercise } from "@/lib/exercise";
+import {
+  applyAttempt,
+  buildExercise,
+  normaliseSegmentMode,
+  retryExercise,
+} from "@/lib/exercise";
+import {
+  readSetupPreference,
+  resolveSetupPreference,
+  writeSetupPreference,
+} from "@/lib/setupPreference";
 import { buildTrickyWordsExercise } from "@/lib/trickyWords";
 import { browserStorage } from "@/lib/trickyWordsStorage";
 import type { ExerciseSnapshot, ReleaseCatalogue, SegmentMode } from "@/types";
 
 const STORAGE_KEY = "kslo.oxbridge.savedExercise.v1";
 
-type Screen = "home" | "exercise" | "results" | "high-scores";
+type Screen = "home" | "exercise" | "results" | "high-scores" | "revision";
+type RevisionSelection = { collectionId: string; mode: SegmentMode };
+
+/** Each #revision history entry carries its own selection, so Back/Forward/refresh reopen it. */
+function revisionSelectionFromHistory(): RevisionSelection | null {
+  const state = window.history.state as { revision?: unknown } | null;
+  const revision = state?.revision as Partial<RevisionSelection> | undefined;
+  return typeof revision?.collectionId === "string" &&
+    typeof revision?.mode === "string"
+    ? { collectionId: revision.collectionId, mode: revision.mode }
+    : null;
+}
+
+function screenFromHash(): Screen {
+  if (window.location.hash === "#high-scores") return "high-scores";
+  if (window.location.hash === "#revision") return "revision";
+  return "home";
+}
 type ConfirmMode = "discard" | "discard-saved" | "quit" | null;
 type PreviewMode = "question" | "results" | null;
 type PendingStart =
@@ -82,9 +110,10 @@ export default function App() {
   const previewMode = useMemo(() => getPreviewMode(), []);
   const [catalogue, setCatalogue] = useState<ReleaseCatalogue | null>(null);
   const [catalogueError, setCatalogueError] = useState<string | null>(null);
-  const [screen, setScreen] = useState<Screen>(() =>
-    window.location.hash === "#high-scores" ? "high-scores" : "home"
-  );
+  const [screen, setScreen] = useState<Screen>(screenFromHash);
+  // Null means "use the remembered Home selection", which also serves a refreshed #revision.
+  const [revisionSelection, setRevisionSelection] =
+    useState<RevisionSelection | null>(revisionSelectionFromHistory);
   const screenRef = useRef<Screen>(screen);
   screenRef.current = screen;
   const highScoresReturnScreen = useRef<"home" | "results">("home");
@@ -219,26 +248,45 @@ export default function App() {
   );
 
   useEffect(() => {
+    // Leaving an active exercise through history keeps it resumable, with its time committed.
+    const pauseForPageChange = () => {
+      startRequest.current += 1;
+      setBusy(false);
+      const current = exerciseRef.current;
+      if (current?.status === "active" && !previewMode) {
+        const paused = { ...current, elapsedMs: timer.commit() };
+        exerciseRef.current = paused;
+        setExercise(paused);
+        setSavedExercise(paused);
+        saveSnapshot(paused);
+      }
+      setConfirmMode(null);
+      setPendingStart(null);
+    };
     const onPageNavigation = () => {
       if (window.location.hash === "#high-scores") {
-        if (screenRef.current !== "high-scores") {
+        if (
+          screenRef.current !== "high-scores" &&
+          screenRef.current !== "revision"
+        ) {
           highScoresReturnScreen.current =
             screenRef.current === "results" ? "results" : "home";
         }
-        startRequest.current += 1;
-        setBusy(false);
-        const current = exerciseRef.current;
-        if (current?.status === "active" && !previewMode) {
-          const paused = { ...current, elapsedMs: timer.commit() };
-          exerciseRef.current = paused;
-          setExercise(paused);
-          setSavedExercise(paused);
-          saveSnapshot(paused);
-        }
+        pauseForPageChange();
         highScores.refresh();
-        setConfirmMode(null);
-        setPendingStart(null);
         setScreen("high-scores");
+      } else if (window.location.hash === "#revision") {
+        // The same return target serves both hash pages, so Results survives either detour.
+        if (
+          screenRef.current !== "high-scores" &&
+          screenRef.current !== "revision"
+        ) {
+          highScoresReturnScreen.current =
+            screenRef.current === "results" ? "results" : "home";
+        }
+        pauseForPageChange();
+        setRevisionSelection(revisionSelectionFromHistory());
+        setScreen("revision");
       } else {
         const destination =
           highScoresReturnScreen.current === "results" &&
@@ -246,7 +294,9 @@ export default function App() {
             ? "results"
             : "home";
         setScreen(current =>
-          current === "high-scores" ? destination : current
+          current === "high-scores" || current === "revision"
+            ? destination
+            : current
         );
       }
       window.scrollTo({ top: 0 });
@@ -275,6 +325,33 @@ export default function App() {
   };
 
   const closeHighScores = () => {
+    highScoresReturnScreen.current = "home";
+    window.history.pushState(
+      null,
+      "",
+      `${window.location.pathname}${window.location.search}`
+    );
+    setScreen("home");
+    window.scrollTo({ top: 0 });
+  };
+
+  const openRevision = (collectionId: string, mode: SegmentMode) => {
+    highScoresReturnScreen.current = "home";
+    startRequest.current += 1;
+    setBusy(false);
+    setConfirmMode(null);
+    setPendingStart(null);
+    setRevisionSelection({ collectionId, mode });
+    window.history.pushState(
+      { revision: { collectionId, mode } },
+      "",
+      `${window.location.pathname}${window.location.search}#revision`
+    );
+    setScreen("revision");
+    window.scrollTo({ top: 0 });
+  };
+
+  const closeRevision = () => {
     highScoresReturnScreen.current = "home";
     window.history.pushState(
       null,
@@ -552,6 +629,33 @@ export default function App() {
     );
   }
 
+  // Plain computation (not a hook): it sits after the High scores early return.
+  const revisionTarget = (() => {
+    if (!catalogue || screen !== "revision") return null;
+    const remembered = resolveSetupPreference(catalogue, readSetupPreference());
+    const selection = revisionSelection ?? remembered;
+    const collection =
+      catalogue.collections.find(item => item.id === selection.collectionId) ??
+      catalogue.collections[0];
+    return {
+      collection,
+      mode: normaliseSegmentMode(collection, selection.mode),
+      count: remembered.count,
+    };
+  })();
+
+  const switchRevisionToExercise = () => {
+    if (revisionTarget) {
+      writeSetupPreference({
+        collectionId: revisionTarget.collection.id,
+        mode: revisionTarget.mode,
+        count: revisionTarget.count,
+        activity: "exercise",
+      });
+    }
+    closeRevision();
+  };
+
   if (!catalogue) {
     return (
       <main className="loading-page" aria-live="polite">
@@ -587,6 +691,7 @@ export default function App() {
           onResume={handleResume}
           onDiscardSavedExercise={requestDiscardSavedExercise}
           onStart={requestStart}
+          onRevise={openRevision}
           trickyWordsCount={trickyWords.list.entries.length}
           onPractiseTrickyWords={requestTrickyWords}
           onHighScores={openHighScores}
@@ -595,6 +700,15 @@ export default function App() {
               .filter(Boolean)
               .join(" ") || null
           }
+        />
+      )}
+      {screen === "revision" && revisionTarget && (
+        <FlashcardsView
+          catalogue={catalogue}
+          collection={revisionTarget.collection}
+          mode={revisionTarget.mode}
+          onBack={closeRevision}
+          onExercise={switchRevisionToExercise}
         />
       )}
       {screen === "exercise" && exercise && (

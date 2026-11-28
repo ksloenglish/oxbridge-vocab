@@ -6,10 +6,20 @@ export const SETUP_PREFERENCE_STORAGE_KEY = "kslo.oxbridge.setupPreference.v1";
 /** The only question counts the folio offers; order matters for the nearest-lower fallback. */
 export const QUESTION_COUNTS = [10, 20, 30, 40, 50, 100];
 
+/** What the student does with the chosen range: flash-card revision or the scored exercise. */
+export type SetupActivity = "revision" | "exercise";
+export const DEFAULT_SETUP_ACTIVITY: SetupActivity = "exercise";
+
 export interface SetupPreference {
   collectionId: string;
   mode: SegmentMode;
   count: number;
+  /** Absent in preferences stored before revision existed; absence means Exercise. */
+  activity?: SetupActivity;
+}
+
+function isSetupActivity(value: unknown): value is SetupActivity {
+  return value === "revision" || value === "exercise";
 }
 
 export const DEFAULT_QUESTION_COUNT = 10;
@@ -25,6 +35,7 @@ export function resolveSetupPreference(
     collectionId: collections[0].id,
     mode: collections[0].segments[0].id,
     count: DEFAULT_QUESTION_COUNT,
+    activity: DEFAULT_SETUP_ACTIVITY,
   };
   if (!preference) return fallback;
 
@@ -45,7 +56,10 @@ export function resolveSetupPreference(
     : [...QUESTION_COUNTS].reverse().find((item) => item <= maximum) ??
       DEFAULT_QUESTION_COUNT;
 
-  return { collectionId: collection.id, mode, count };
+  const activity = isSetupActivity(preference.activity)
+    ? preference.activity
+    : DEFAULT_SETUP_ACTIVITY;
+  return { collectionId: collection.id, mode, count, activity };
 }
 
 export function maximumQuestionCount(
@@ -85,6 +99,7 @@ export function readSetupPreference(storage?: StorageLike): SetupPreference | nu
       collectionId: parsed.collectionId,
       mode: parsed.mode,
       count: parsed.count,
+      ...(isSetupActivity(parsed.activity) ? { activity: parsed.activity } : {}),
     };
   } catch {
     return null;
